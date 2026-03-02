@@ -32,7 +32,7 @@ export function LandingPageContent({
           : "pointer-events-none opacity-0",
       )}
     >
-      <div className="h-max w-full max-w-lg">
+      <div className="h-max w-max max-w-lg">
         <div
           className="transition-all duration-300 ease-in-out"
           style={{
