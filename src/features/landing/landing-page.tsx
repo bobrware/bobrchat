@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
+import { rethinkSans } from "~/lib/fonts";
 
 import { ApiKeysMockup } from "./mockups/api-keys-mockup";
 import { CostBreakdownMockup } from "./mockups/cost-breakdown-mockup";
@@ -17,7 +18,7 @@ import { ParallelSearchMockup } from "./mockups/parallel-search-mockup";
 
 export function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`flex min-h-screen flex-col ${rethinkSans.className}`}>
       {/* Navigation */}
       <nav className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">

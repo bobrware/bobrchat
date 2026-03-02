@@ -7,7 +7,6 @@ import type { AccentColor, UserSettingsData } from "~/features/settings/types";
 
 const ACCENT_CLASSES = ["accent-pink", "accent-cyan", "accent-orange", "accent-yellow", "accent-blue", "accent-gray"];
 const CUSTOM_COLOR_VARS = ["--primary", "--ring", "--chart-1", "--sidebar-primary", "--sidebar-ring"];
-const FONT_VARS = ["--font-rethink", "--font-jetbrains"];
 
 export function applyAccentColor(color: AccentColor) {
   const html = document.documentElement;
@@ -32,15 +31,8 @@ export function applyAccentColor(color: AccentColor) {
 export function applyFonts(fontSans: UserSettingsData["fontSans"], fontMono: UserSettingsData["fontMono"]) {
   const html = document.documentElement;
 
-  // Clear any previous inline overrides
-  FONT_VARS.forEach(v => html.style.removeProperty(v));
-
-  if (fontSans === "system") {
-    html.style.setProperty("--font-rethink", "ui-sans-serif, system-ui, -apple-system, sans-serif");
-  }
-  if (fontMono === "system") {
-    html.style.setProperty("--font-jetbrains", "ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace");
-  }
+  html.classList.toggle("font-sans-system", fontSans === "system");
+  html.classList.toggle("font-mono-system", fontMono === "system");
 
   // Persist to cookies so root layout can apply before paint on next load
   document.cookie = `font_sans=${fontSans}; path=/; max-age=31536000; SameSite=Lax`;

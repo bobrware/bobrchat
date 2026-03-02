@@ -135,6 +135,14 @@
   --sidebar-ring: oklch(0.72 0.19 135);
 }
 
+/* Font overrides — class-based so they survive hydration & next-themes */
+html.font-sans-system {
+  --font-rethink: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+html.font-mono-system {
+  --font-jetbrains: ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+}
+
 /* Accent color presets - Monokai-inspired palette */
 html.accent-pink {
   --primary: oklch(0.65 0.28 350);

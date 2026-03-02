@@ -5,19 +5,11 @@ import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 
 import "./globals.css";
 
-import { JetBrains_Mono, Rethink_Sans } from "next/font/google";
-
 import { ThemeProvider } from "~/components/theme/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { PreviousRouteProvider } from "~/features/settings/previous-route-context";
+import { jetbrainsMono, rethinkSans } from "~/lib/fonts";
 import { QueryProvider } from "~/lib/queries/query-provider";
-
-const rethinkSans = Rethink_Sans({ subsets: ["latin"], variable: "--font-rethink" });
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -75,7 +67,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var c=document.cookie.split(";");var fs,fm;c.forEach(function(s){s=s.trim();if(s.startsWith("font_sans="))fs=s.substring(10);if(s.startsWith("font_mono="))fm=s.substring(10)});var h=document.documentElement.style;if(fs==="system")h.setProperty("--font-rethink","ui-sans-serif,system-ui,-apple-system,sans-serif");if(fm==="system")h.setProperty("--font-jetbrains","ui-monospace,SFMono-Regular,Menlo,Consolas,monospace")})()`,
+            __html: `(function(){var c=document.cookie.split(";");var fs,fm;c.forEach(function(s){s=s.trim();if(s.startsWith("font_sans="))fs=s.substring(10);if(s.startsWith("font_mono="))fm=s.substring(10)});var h=document.documentElement;if(fs==="system")h.classList.add("font-sans-system");if(fm==="system")h.classList.add("font-mono-system")})()`,
           }}
         />
       </head>

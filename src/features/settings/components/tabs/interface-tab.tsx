@@ -159,12 +159,12 @@ export function InterfaceTab() {
                 value={settings.fontSans ?? "rethink"}
                 onValueChange={v => save({ fontSans: v as "rethink" | "system" })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rethink">Rethink Sans</SelectItem>
-                  <SelectItem value="system">System Default</SelectItem>
+                  <SelectItem value="rethink" style={{ fontFamily: "var(--font-rethink)" }}>Rethink Sans</SelectItem>
+                  <SelectItem value="system" style={{ fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif" }}>System Default</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -175,12 +175,12 @@ export function InterfaceTab() {
                 value={settings.fontMono ?? "jetbrains"}
                 onValueChange={v => save({ fontMono: v as "jetbrains" | "system" })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full" style={{ fontFamily: (settings.fontMono ?? "jetbrains") === "jetbrains" ? "var(--font-jetbrains)" : "ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace" }}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="jetbrains">JetBrains Mono</SelectItem>
-                  <SelectItem value="system">System Default</SelectItem>
+                  <SelectItem value="jetbrains" style={{ fontFamily: "var(--font-jetbrains)" }}>JetBrains Mono</SelectItem>
+                  <SelectItem value="system" style={{ fontFamily: "ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace" }}>System Default</SelectItem>
                 </SelectContent>
               </Select>
             </div>
