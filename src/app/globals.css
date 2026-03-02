@@ -45,8 +45,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-rethink-sans), "Rethink Sans", sans-serif;
-  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+  --font-sans: var(--font-rethink), sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -132,6 +132,23 @@
   --sidebar-accent-foreground: oklch(0.94 0.01 100);
   --sidebar-border: oklch(0.22 0.02 260);
   --sidebar-ring: oklch(0.72 0.19 135);
+}
+
+/* Font overrides — class-based so they survive hydration & next-themes */
+html.font-sans-lexend {
+  --font-rethink: var(--font-lexend);
+}
+html.font-sans-atkinson {
+  --font-rethink: var(--font-atkinson);
+}
+html.font-sans-system {
+  --font-rethink: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+html.font-mono-atkinson-mono {
+  --font-jetbrains: var(--font-atkinson-mono);
+}
+html.font-mono-system {
+  --font-jetbrains: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
 }
 
 /* Accent color presets - Monokai-inspired palette */

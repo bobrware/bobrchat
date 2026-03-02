@@ -5,19 +5,11 @@ import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 
 import "./globals.css";
 
-import { JetBrains_Mono, Rethink_Sans } from "next/font/google";
-
 import { ThemeProvider } from "~/components/theme/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { PreviousRouteProvider } from "~/features/settings/previous-route-context";
+import { atkinsonHyperlegible, atkinsonHyperlegibleMono, jetbrainsMono, lexend, rethinkSans } from "~/lib/fonts";
 import { QueryProvider } from "~/lib/queries/query-provider";
-
-const rethinkSans = Rethink_Sans({ subsets: ["latin"], variable: "--font-sans" });
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -71,14 +63,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`
-          ${rethinkSans.variable}
-          ${jetbrainsMono.variable}
-          min-h-screen w-full antialiased
-        `}
-      >
+    <html lang="en" suppressHydrationWarning className={`${rethinkSans.variable} ${jetbrainsMono.variable} ${lexend.variable} ${atkinsonHyperlegible.variable} ${atkinsonHyperlegibleMono.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var c=document.cookie.split(";");var fs,fm;c.forEach(function(s){s=s.trim();if(s.startsWith("font_sans="))fs=s.substring(10);if(s.startsWith("font_mono="))fm=s.substring(10)});var h=document.documentElement;if(fs&&fs!=="rethink")h.classList.add("font-sans-"+fs);if(fm&&fm!=="jetbrains")h.classList.add("font-mono-"+fm)})()`,
+          }}
+        />
+      </head>
+      <body className="min-h-screen w-full font-sans antialiased">
         <Analytics />
         <AuthKitProvider>
           <ThemeProvider
