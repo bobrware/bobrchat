@@ -46,6 +46,10 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
   const openrouterKey = resolvedKeys.openrouter;
   const parallelKey = searchEnabled ? resolvedKeys.parallel : undefined;
 
+  // Check if the user has a direct key matching the model's provider prefix (e.g. "openai" → resolvedKeys.openai)
+  const modelPrefix = baseModelId.split("/")[0] as ApiKeyProvider;
+  const hasAnyModelKey = !!resolvedKeys[modelPrefix] || !!openrouterKey;
+
   if (threadStatus && !threadStatus.owned) {
     return new Response(JSON.stringify({ error: "Thread not found or unauthorized" }), {
       status: 403,
@@ -53,7 +57,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     });
   }
 
-  if (!openrouterKey) {
+  if (!hasAnyModelKey) {
     return new Response(JSON.stringify({ error: "No API key configured. Provide a browser key or store one on the server." }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -80,7 +84,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
   const { stream, createMetadata } = await streamChatResponse(
     messages,
     baseModelId,
-    openrouterKey,
+    resolvedKeys,
     settings,
     userId,
     searchEnabled,
@@ -99,7 +103,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     const wantsTitle = settings.autoThreadNaming;
     const wantsIcon = settings.autoThreadIcon && !settings.showSidebarIcons;
 
-    if (wantsTitle || wantsIcon) {
+    if ((wantsTitle || wantsIcon) && openrouterKey) {
       const firstMessage = messages[0];
       const userMessage = firstMessage.parts
         ? firstMessage.parts
