@@ -16,7 +16,7 @@
       system: let
         pkgs = import nixpkgs {inherit system;};
       in {
-        devShell = pkgs.callPackage ./nix/devShell.nix {};
+        devShells.default = pkgs.callPackage ./nix/devShell.nix {};
         formatter = pkgs.alejandra;
       }
     );
