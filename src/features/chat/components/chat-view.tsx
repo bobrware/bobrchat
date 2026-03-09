@@ -12,6 +12,12 @@ import { BetaBanner } from "./beta-banner";
 import { ChatInput } from "./chat-input";
 import { ParentThreadLink } from "./ui/parent-thread-link";
 
+export type ChatScrollContext = {
+  viewportRef: React.RefObject<HTMLDivElement | null>;
+  isUserNearBottomRef: React.RefObject<boolean>;
+  registerScrollToBottom: (fn: () => void) => void;
+};
+
 export function ChatView({
   messages,
   sendMessage,
@@ -27,9 +33,11 @@ export function ChatView({
   onStop?: () => void;
   threadId?: string;
   parentThread?: { id: string; title: string } | null;
-  children: React.ReactNode;
+  children: (scrollContext: ChatScrollContext) => React.ReactNode;
 }) {
-  const { scrollRef, viewportRef, messagesEndRef, isInitialScrollComplete } = useChatScroll(messages, { threadId });
+  const { scrollRef, viewportRef, isInitialScrollComplete, isUserNearBottomRef, registerScrollToBottom } = useChatScroll(messages, { threadId });
+
+  const scrollContext: ChatScrollContext = { viewportRef, isUserNearBottomRef, registerScrollToBottom };
 
   return (
     <div className="flex h-full max-h-screen flex-col">
@@ -45,9 +53,8 @@ export function ChatView({
             : "translate-y-2 scale-99 opacity-0",
         )}
         >
-          {children}
+          {children(scrollContext)}
         </div>
-        <div ref={messagesEndRef} />
       </ScrollArea>
       <div className="shrink-0">
         <ChatInput

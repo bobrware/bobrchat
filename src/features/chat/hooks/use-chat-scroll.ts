@@ -23,10 +23,18 @@ export function useChatScroll(
   const { shouldScroll = true, threadId } = options;
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isInitialScrollComplete, setIsInitialScrollComplete] = useState(hasAppLoaded);
   const prevThreadIdRef = useRef<string | undefined>(threadId);
   const isUserNearBottomRef = useRef(true);
+  const scrollToBottomRef = useRef<(() => void) | null>(null);
+
+  const registerScrollToBottom = useCallback((fn: () => void) => {
+    scrollToBottomRef.current = fn;
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    scrollToBottomRef.current?.();
+  }, []);
 
   const handleScroll = useCallback((e: Event) => {
     const viewport = e.target as HTMLElement;
@@ -44,62 +52,54 @@ export function useChatScroll(
     return () => viewport.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  // Auto-scroll on new messages when user is near bottom
   useEffect(() => {
-    if (!shouldScroll || !messagesEndRef.current)
-      return;
-
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer)
+    if (!shouldScroll)
       return;
 
     if (!isUserNearBottomRef.current)
       return;
 
     requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView();
+      scrollToBottom();
     });
-  }, [messages, shouldScroll]);
+  }, [messages, shouldScroll, scrollToBottom]);
 
+  // Thread switch: instant scroll to bottom
   useLayoutEffect(() => {
-    if (!shouldScroll || !messagesEndRef.current)
-      return;
-
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer)
+    if (!shouldScroll)
       return;
 
     const isThreadSwitch = prevThreadIdRef.current !== undefined && prevThreadIdRef.current !== threadId;
     if (isThreadSwitch) {
-      messagesEndRef.current?.scrollIntoView();
+      scrollToBottom();
       isUserNearBottomRef.current = true;
       prevThreadIdRef.current = threadId;
       return;
     }
 
     prevThreadIdRef.current = threadId;
-  }, [shouldScroll, threadId]);
+  }, [shouldScroll, threadId, scrollToBottom]);
 
+  // Initial load: scroll to bottom after first render
   useEffect(() => {
-    if (!shouldScroll || !messagesEndRef.current || isInitialScrollComplete)
-      return;
-
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer)
+    if (!shouldScroll || isInitialScrollComplete)
       return;
 
     const timer = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView();
+      scrollToBottom();
       setIsInitialScrollComplete(true);
       hasAppLoaded = true;
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [shouldScroll, isInitialScrollComplete]);
+  }, [shouldScroll, isInitialScrollComplete, scrollToBottom]);
 
   return {
     scrollRef,
     viewportRef,
-    messagesEndRef,
     isInitialScrollComplete,
+    isUserNearBottomRef,
+    registerScrollToBottom,
   };
 }

@@ -345,17 +345,20 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
         threadId={id}
         parentThread={parentThread}
       >
-        <ChatMessages
-          messages={messages}
-          isLoading={isLoading}
-          onRegenerate={handleRegenerate}
-          isRegenerating={isRegenerating}
-          onEditMessage={handleEditMessage}
-          isEditSubmitting={isEditSubmitting}
-          creditError={creditError}
-          onRetryCreditError={handleRetryCreditError}
-          onDismissCreditError={handleDismissCreditError}
-        />
+        {scrollContext => (
+          <ChatMessages
+            messages={messages}
+            isLoading={isLoading}
+            onRegenerate={handleRegenerate}
+            isRegenerating={isRegenerating}
+            onEditMessage={handleEditMessage}
+            isEditSubmitting={isEditSubmitting}
+            creditError={creditError}
+            onRetryCreditError={handleRetryCreditError}
+            onDismissCreditError={handleDismissCreditError}
+            scrollContext={scrollContext}
+          />
+        )}
       </ChatView>
       <UpgradePromptDialog
         open={upgradeDialog.open}
