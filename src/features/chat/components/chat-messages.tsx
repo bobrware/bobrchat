@@ -34,7 +34,6 @@ export const ChatMessages = memo(({
   onRetryCreditError?: () => void;
   onDismissCreditError?: () => void;
 }) => {
-  const searchEnabled = useChatUIStore(state => state.searchEnabled);
   const stoppedAssistantMessageInfoById = useChatUIStore(state => state.stoppedAssistantMessageInfoById);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 
@@ -91,7 +90,6 @@ export const ChatMessages = memo(({
               message={message}
               isLastMessage={messageIndex === filteredMessages.length - 1}
               isLoading={isLoading ?? false}
-              searchEnabled={searchEnabled}
               onRegenerate={onRegenerate}
               isRegenerating={isRegenerating}
               creditError={creditError && messageIndex === filteredMessages.length - 1 ? creditError : null}

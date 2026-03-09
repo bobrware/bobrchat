@@ -30,7 +30,6 @@ export type RenderState = {
   isLast: boolean;
   showRaw: boolean;
   isStopped: boolean;
-  searchEnabled: boolean;
   isLoading: boolean;
 };
 
@@ -53,7 +52,7 @@ export function MessageParts({
   renderState,
 }: MessagePartsProps) {
   const isActive = mode === "active";
-  const { isLast = false, showRaw = false, isStopped = false, searchEnabled = false, isLoading = false } = renderState ?? {};
+  const { isLast = false, showRaw = false, isStopped = false, isLoading = false } = renderState ?? {};
 
   return (
     <>
@@ -171,10 +170,6 @@ export function MessageParts({
         return null;
       })}
 
-      {/* Fallback for initial searching state before any parts exist (active mode only) */}
-      {isActive && isLoading && isLast && searchEnabled && parts.length === 0 && (
-        <SearchingSources id={`${messageId}-search-fallback`} sources={[]} isSearching={true} />
-      )}
     </>
   );
 }
