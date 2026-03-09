@@ -44,7 +44,6 @@ type AssistantMessageProps = {
   creditError?: { messageId: string } | null;
   onRetryCreditError?: () => void;
   onDismissCreditError?: () => void;
-  onOpenModelSelector?: () => void;
 };
 
 export const AssistantMessage = memo(({
@@ -57,7 +56,6 @@ export const AssistantMessage = memo(({
   creditError,
   onRetryCreditError,
   onDismissCreditError,
-  onOpenModelSelector,
 }: AssistantMessageProps) => {
   const stoppedInfo = useChatUIStore(state => state.stoppedAssistantMessageInfoById[message.id]);
   const showRaw = useChatUIStore(state => state.rawMessageIds.has(message.id));

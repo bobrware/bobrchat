@@ -35,7 +35,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
     setInput,
     setStreamingThreadId,
     setSelectedModelId,
-    setModelSelectorOpen,
     lastSendPayload,
     setLastSendPayload,
     lastSendMessageId,
@@ -314,10 +313,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
     setLastSendMessageId(null);
   }, [setLastSendMessageId]);
 
-  const handleOpenModelSelector = useCallback(() => {
-    setModelSelectorOpen(true);
-  }, [setModelSelectorOpen]);
-
   return (
     <ChatView
       messages={messages}
@@ -337,7 +332,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
         creditError={creditError}
         onRetryCreditError={handleRetryCreditError}
         onDismissCreditError={handleDismissCreditError}
-        onOpenModelSelector={handleOpenModelSelector}
       />
     </ChatView>
   );
