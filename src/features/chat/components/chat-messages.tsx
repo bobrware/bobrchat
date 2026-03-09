@@ -96,7 +96,7 @@ export const ChatMessages = memo(({
               searchEnabled={searchEnabled}
               onRegenerate={onRegenerate}
               isRegenerating={isRegenerating}
-              creditError={creditError?.messageId === message.id ? creditError : null}
+              creditError={creditError && messageIndex === filteredMessages.length - 1 ? creditError : null}
               onRetryCreditError={onRetryCreditError}
               onDismissCreditError={onDismissCreditError}
               onOpenModelSelector={onOpenModelSelector}

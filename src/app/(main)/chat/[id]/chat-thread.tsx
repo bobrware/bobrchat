@@ -132,7 +132,7 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
 
       toast.error(friendlyMessage);
     },
-    onFinish: ({ message }) => {
+    onFinish: ({ message, isError }) => {
       queryClient.invalidateQueries({ queryKey: THREADS_KEY });
 
       const cost = (message.metadata as ChatUIMessage["metadata"])?.costUSD?.total;
@@ -146,8 +146,10 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
         queryClient.invalidateQueries({ queryKey: OPENROUTER_CREDITS_KEY });
       }
 
-      setCreditError(null);
-      setLastSendMessageId(null);
+      if (!isError) {
+        setCreditError(null);
+        setLastSendMessageId(null);
+      }
     },
   });
 

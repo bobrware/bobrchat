@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertCircle, RefreshCwIcon } from "lucide-react";
-import Link from "next/link";
 import { memo } from "react";
 
 import type { ChatUIMessage } from "~/features/chat/types";
@@ -142,29 +141,12 @@ export const AssistantMessage = memo(({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               className="h-8"
               onClick={onRetryCreditError}
             >
               Retry
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              onClick={onOpenModelSelector}
-            >
-              Switch model
-            </Button>
-            <Button asChild variant="outline" size="sm" className="h-8">
-              <Link
-                href="/settings?tab=integrations"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Add credits
-              </Link>
             </Button>
             <Button
               variant="ghost"

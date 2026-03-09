@@ -1,4 +1,4 @@
-import { NoSuchToolError } from "ai";
+import { createUIMessageStream, createUIMessageStreamResponse, NoSuchToolError } from "ai";
 
 import type { ChatUIMessage } from "~/features/chat/types";
 import type { ApiKeyProvider } from "~/lib/api-keys/types";
@@ -121,30 +121,36 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     }
   }
 
-  return stream.toUIMessageStreamResponse({
+  const onError = (error: unknown) => {
+    if (!NoSuchToolError.isInstance(error)) {
+      console.error("Chat stream error", error);
+    }
+    return formatProviderError(error);
+  };
+
+  const uiStream = createUIMessageStream({
     originalMessages: messages,
-    messageMetadata: ({ part }) => {
-      const metadata = createMetadata(part);
-      return metadata;
-    },
+    onError,
     onFinish: async ({ responseMessage }) => {
       if (threadId) {
         await saveMessage(threadId, userId, responseMessage);
       }
     },
-    sendSources: true,
-    sendReasoning: true,
-    onError: (error) => {
-      if (!NoSuchToolError.isInstance(error)) {
-        console.error("Chat stream error", error);
-      }
-      return formatProviderError(error);
+    execute: ({ writer }) => {
+      writer.merge(
+        stream.toUIMessageStream({
+          originalMessages: messages,
+          messageMetadata: ({ part }) => {
+            const metadata = createMetadata(part);
+            return metadata;
+          },
+          sendSources: true,
+          sendReasoning: true,
+          onError,
+        }),
+      );
     },
-    // TODO: Re-enable consumeStream when we can afford the CPU overhead of draining streams.
-    // consumeSseStream: async (sseStream) => {
-    //   after(async () => {
-    //     await consumeStream(sseStream);
-    //   });
-    // },
   });
+
+  return createUIMessageStreamResponse({ stream: uiStream });
 }
