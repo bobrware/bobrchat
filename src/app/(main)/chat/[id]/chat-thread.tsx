@@ -35,7 +35,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
     setInput,
     setStreamingThreadId,
     setSelectedModelId,
-    setModelSelectorOpen,
     lastSendPayload,
     setLastSendPayload,
     lastSendMessageId,
@@ -132,7 +131,7 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
 
       toast.error(friendlyMessage);
     },
-    onFinish: ({ message }) => {
+    onFinish: ({ message, isError }) => {
       queryClient.invalidateQueries({ queryKey: THREADS_KEY });
 
       const cost = (message.metadata as ChatUIMessage["metadata"])?.costUSD?.total;
@@ -146,8 +145,10 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
         queryClient.invalidateQueries({ queryKey: OPENROUTER_CREDITS_KEY });
       }
 
-      setCreditError(null);
-      setLastSendMessageId(null);
+      if (!isError) {
+        setCreditError(null);
+        setLastSendMessageId(null);
+      }
     },
   });
 
@@ -312,10 +313,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
     setLastSendMessageId(null);
   }, [setLastSendMessageId]);
 
-  const handleOpenModelSelector = useCallback(() => {
-    setModelSelectorOpen(true);
-  }, [setModelSelectorOpen]);
-
   return (
     <ChatView
       messages={messages}
@@ -335,7 +332,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
         creditError={creditError}
         onRetryCreditError={handleRetryCreditError}
         onDismissCreditError={handleDismissCreditError}
-        onOpenModelSelector={handleOpenModelSelector}
       />
     </ChatView>
   );
