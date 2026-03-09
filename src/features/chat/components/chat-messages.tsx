@@ -65,8 +65,13 @@ export const ChatMessages = memo(({
         creditError: isLastMessage ? creditError ?? null : null,
       };
     });
+
+    if (isLoading) {
+      result.push({ kind: "loading" });
+    }
+
     return result;
-  }, [filteredMessages, stoppedAssistantMessageInfoById, creditError]);
+  }, [filteredMessages, stoppedAssistantMessageInfoById, creditError, isLoading]);
 
   const handleStartEdit = (messageId: string) => {
     if (canEditMessages) {
@@ -122,9 +127,12 @@ export const ChatMessages = memo(({
           );
         }
 
+        if (row.kind === "loading") {
+          return <LoadingSpinner key="loading" />;
+        }
+
         return null;
       })}
-      {isLoading && <LoadingSpinner />}
     </div>
   );
 });
