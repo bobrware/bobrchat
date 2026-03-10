@@ -23,6 +23,14 @@ export function useChatScroll(
   const { shouldScroll = true, threadId } = options;
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  // Store the viewport element in state so that consumers (e.g. the
+  // virtualizer) re-render when it becomes available.  A plain ref
+  // wouldn't trigger the re-render the virtualizer needs.
+  const [viewportElement, setViewportElement] = useState<HTMLDivElement | null>(null);
+  const viewportCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    viewportRef.current = node;
+    setViewportElement(node);
+  }, []);
   const [isInitialScrollComplete, setIsInitialScrollComplete] = useState(hasAppLoaded);
   const prevThreadIdRef = useRef<string | undefined>(threadId);
   const isUserNearBottomRef = useRef(true);
@@ -67,18 +75,40 @@ export function useChatScroll(
     return () => viewport.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  // Auto-scroll on new messages when user is near bottom
+  // Auto-scroll on new messages when user is near bottom.
+  // Skip the initial mount — the initial-scroll effect handles that.
+  // Uses rAF batching so rapid message-identity changes during streaming
+  // (every ~75ms from useChat's throttle) collapse into one scroll per frame.
+  const hasAutoScrolledRef = useRef(false);
+  const autoScrollRafRef = useRef(0);
   useEffect(() => {
+    if (!hasAutoScrolledRef.current) {
+      hasAutoScrolledRef.current = true;
+      return;
+    }
+
     if (!shouldScroll)
       return;
 
     if (!isUserNearBottomRef.current)
       return;
 
-    requestAnimationFrame(() => {
+    if (autoScrollRafRef.current)
+      return;
+
+    autoScrollRafRef.current = requestAnimationFrame(() => {
+      autoScrollRafRef.current = 0;
       scrollToBottom();
     });
   }, [messages, shouldScroll, scrollToBottom]);
+
+  useEffect(() => {
+    return () => {
+      if (autoScrollRafRef.current) {
+        cancelAnimationFrame(autoScrollRafRef.current);
+      }
+    };
+  }, []);
 
   // Thread switch: instant scroll to bottom
   useLayoutEffect(() => {
@@ -113,6 +143,8 @@ export function useChatScroll(
   return {
     scrollRef,
     viewportRef,
+    viewportCallbackRef,
+    viewportElement,
     isInitialScrollComplete,
     isUserNearBottomRef,
     registerScrollToBottom,

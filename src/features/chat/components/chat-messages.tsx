@@ -1,7 +1,7 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ChatUIMessage } from "~/features/chat/types";
 
@@ -88,23 +88,39 @@ export const ChatMessages = memo(({
 
   const { registerScrollToBottom, isUserNearBottomRef, scrollToBottom } = scrollContext;
 
+  // Batch onChange → scrollToBottom into a single rAF per frame to avoid
+  // cascading scroll calls from rapid measurement corrections.
+  const onChangeRafRef = useRef(0);
+  const batchedScrollToBottom = useCallback(() => {
+    if (onChangeRafRef.current)
+      return;
+    onChangeRafRef.current = requestAnimationFrame(() => {
+      onChangeRafRef.current = 0;
+      if (isUserNearBottomRef.current) {
+        scrollToBottom();
+      }
+    });
+  }, [isUserNearBottomRef, scrollToBottom]);
+
+  useEffect(() => {
+    return () => {
+      if (onChangeRafRef.current) {
+        cancelAnimationFrame(onChangeRafRef.current);
+      }
+    };
+  }, []);
+
   const virtualizer = useVirtualizer({
     count: rows.length,
-    getScrollElement: () => scrollContext.viewportRef.current,
+    getScrollElement: () => scrollContext.viewportElement,
     estimateSize: index => estimateRowSize(rows[index]),
     overscan: 5,
     getItemKey: index => rows[index].key,
     paddingStart: 32,
     paddingEnd: 32,
-    onChange: () => {
-      // Any time virtual item sizes change (measurement corrections, LaTeX
-      // rendering, streaming content growth), re-pin to bottom if the user
-      // hasn't scrolled away.
-      if (!isUserNearBottomRef.current)
-        return;
-      scrollToBottom();
-    },
+    onChange: batchedScrollToBottom,
   });
+
   useEffect(() => {
     registerScrollToBottom(() => {
       scrollToBottom();

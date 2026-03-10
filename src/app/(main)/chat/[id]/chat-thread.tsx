@@ -31,6 +31,7 @@ type ChatThreadProps = {
 function ChatThread({ params, initialMessages, initialPendingMessage, parentThread, lastUsedModelId, initialThread }: ChatThreadProps): React.ReactNode {
   const { id } = use(params);
   const queryClient = useQueryClient();
+
   const {
     clearInput,
     setInput,

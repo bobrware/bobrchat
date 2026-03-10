@@ -14,6 +14,7 @@ import { ParentThreadLink } from "./ui/parent-thread-link";
 
 export type ChatScrollContext = {
   viewportRef: React.RefObject<HTMLDivElement | null>;
+  viewportElement: HTMLDivElement | null;
   isUserNearBottomRef: React.RefObject<boolean>;
   registerScrollToBottom: (fn: () => void) => void;
   scrollToBottom: () => void;
@@ -36,9 +37,9 @@ export function ChatView({
   parentThread?: { id: string; title: string } | null;
   children: (scrollContext: ChatScrollContext) => React.ReactNode;
 }) {
-  const { scrollRef, viewportRef, isInitialScrollComplete, isUserNearBottomRef, registerScrollToBottom, scrollToBottom } = useChatScroll(messages, { threadId });
+  const { scrollRef, viewportRef, viewportCallbackRef, viewportElement, isInitialScrollComplete, isUserNearBottomRef, registerScrollToBottom, scrollToBottom } = useChatScroll(messages, { threadId });
 
-  const scrollContext: ChatScrollContext = { viewportRef, isUserNearBottomRef, registerScrollToBottom, scrollToBottom };
+  const scrollContext: ChatScrollContext = { viewportRef, viewportElement, isUserNearBottomRef, registerScrollToBottom, scrollToBottom };
 
   return (
     <div className="flex h-full max-h-screen flex-col">
@@ -46,7 +47,7 @@ export function ChatView({
       {parentThread && (
         <ParentThreadLink parentId={parentThread.id} parentTitle={parentThread.title} />
       )}
-      <ScrollArea className="min-h-0 flex-1" ref={scrollRef} viewportRef={viewportRef}>
+      <ScrollArea className="min-h-0 flex-1" ref={scrollRef} viewportRef={viewportCallbackRef}>
         <div className={cn(
           "transition-[opacity,transform] duration-300 ease-out",
           isInitialScrollComplete && messages.length > 0
