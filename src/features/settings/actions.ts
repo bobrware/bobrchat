@@ -1,13 +1,14 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 import type { ApiKeyProvider } from "~/lib/api-keys";
 
 import { getRequiredSession, getSession } from "~/features/auth/lib/session";
+import { TOOL_MODEL_OPTIONS } from "~/features/chat/server/providers/types";
 import { hasEncryptedKey } from "~/lib/api-keys/server";
 import { db } from "~/lib/db";
-import { threads } from "~/lib/db/schema";
+import { models, threads } from "~/lib/db/schema";
 
 import type { FavoriteModelsInput, PreferencesUpdate, UserSettingsData } from "./types";
 
@@ -113,6 +114,10 @@ export async function createDefaultUserSettings(userId: string): Promise<UserSet
     inputHeightScale: 0,
     profileCardWidget: "apiKeyStatus",
     autoArchiveAfterDays: 0,
+    toolTitleModel: "gemini-flash-lite",
+    toolIconModel: "gemini-flash-lite",
+    handoffEnabled: false,
+    toolHandoffModel: "gemini-flash-lite",
   };
 
   await updateUserSettings(userId, defaultSettings);
@@ -135,9 +140,10 @@ export async function syncUserSettings(): Promise<UserSettingsData | null> {
   }
 
   // Return fresh settings with configured API keys info
-  const [settings, hasOpenRouter, hasParallel] = await Promise.all([
+  const [settings, hasOpenRouter, hasOpenAI, hasParallel] = await Promise.all([
     getUserSettings(session.user.id),
     hasEncryptedKey(session.user.id, "openrouter"),
+    hasEncryptedKey(session.user.id, "openai"),
     hasEncryptedKey(session.user.id, "parallel"),
   ]);
 
@@ -145,6 +151,7 @@ export async function syncUserSettings(): Promise<UserSettingsData | null> {
     ...settings,
     configuredApiKeys: {
       openrouter: hasOpenRouter,
+      openai: hasOpenAI,
       parallel: hasParallel,
     },
   };
@@ -233,4 +240,28 @@ export async function getOpenRouterCredits(params?: { openrouterClientKey?: stri
   return {
     remaining: creditsJson.data.total_credits - creditsJson.data.total_usage,
   };
+}
+
+/**
+ * Fetches pricing data for tool model options from the models cache.
+ * Returns a map of tool model ID → prompt cost per million tokens.
+ */
+export async function getToolModelPricing(): Promise<Record<string, number | null>> {
+  const openrouterIds = TOOL_MODEL_OPTIONS.map(o => o.openrouterModelId);
+
+  const rows = await db
+    .select({
+      modelId: models.modelId,
+      pricingPrompt: models.pricingPrompt,
+    })
+    .from(models)
+    .where(or(...openrouterIds.map(id => eq(models.modelId, id))));
+
+  const priceByModelId = new Map(rows.map(r => [r.modelId, r.pricingPrompt]));
+
+  const result: Record<string, number | null> = {};
+  for (const option of TOOL_MODEL_OPTIONS) {
+    result[option.id] = priceByModelId.get(option.openrouterModelId) ?? null;
+  }
+  return result;
 }

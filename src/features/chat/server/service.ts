@@ -52,7 +52,7 @@ export async function streamChatResponse(
   modelPricing?: { prompt: string; completion: string },
   supportsTools?: boolean,
   handoffEnabled?: boolean,
-  openRouterApiKey?: string,
+  utilityProvider?: ResolvedProvider,
 ) {
   const startTime = Date.now();
   let firstTokenTime: number | null = null;
@@ -100,7 +100,7 @@ export async function streamChatResponse(
   );
 
   const searchTools = searchEnabled && parallelApiKey ? createSearchTools(parallelApiKey) : {};
-  const handoffTools = threadId && handoffEnabled && openRouterApiKey ? createHandoffTool(userId, threadId, messages, openRouterApiKey) : {};
+  const handoffTools = threadId && handoffEnabled && utilityProvider ? createHandoffTool(userId, threadId, messages, utilityProvider) : {};
   const tools = (Object.keys({ ...searchTools, ...handoffTools }).length > 0) && supportsTools
     ? { ...searchTools, ...handoffTools }
     : undefined;

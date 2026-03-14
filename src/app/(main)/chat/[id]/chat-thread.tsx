@@ -106,7 +106,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
         ...(state.selectedModelId && { modelId: state.selectedModelId }),
         supportsNativePdf: capabilities.supportsNativePdf,
         supportsTools: capabilities.supportsTools,
-        handoffEnabled: state.handoffEnabled,
         // Pass pricing from client cache to avoid server-side model fetch
         ...(selectedModelInfo?.pricing && {
           modelPricing: {

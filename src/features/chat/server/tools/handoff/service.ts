@@ -2,12 +2,11 @@ import type { UIMessage } from "ai";
 
 import { generateText } from "ai";
 
+import type { ResolvedProvider } from "~/features/chat/server/providers";
+
+import { createOpenAIProvider, createOpenRouterProvider } from "~/features/chat/server/providers";
 import { db } from "~/lib/db";
 import { threads } from "~/lib/db/schema/chat";
-
-import { createOpenRouterProvider } from "../../providers";
-
-const HANDOFF_MODEL = "google/gemini-3.1-flash-lite-preview";
 
 const HANDOFF_SYSTEM_PROMPT = `You are a context summarizer. Your job is to read a thread and the user's handoff request, then generate a focused prompt for a new thread.
 
@@ -56,13 +55,16 @@ function formatConversationForHandoff(messages: UIMessage[]): string {
 export async function generateHandoffPrompt(
   messages: UIMessage[],
   objective: string,
-  openRouterApiKey: string,
+  utilityProvider: ResolvedProvider,
 ): Promise<string> {
-  const provider = createOpenRouterProvider(openRouterApiKey);
+  const factory = utilityProvider.providerType === "openai"
+    ? createOpenAIProvider(utilityProvider.apiKey)
+    : createOpenRouterProvider(utilityProvider.apiKey);
+
   const conversationContext = formatConversationForHandoff(messages);
 
   const result = await generateText({
-    model: provider(HANDOFF_MODEL),
+    model: factory(utilityProvider.providerModelId),
     system: HANDOFF_SYSTEM_PROMPT,
     messages: [
       {

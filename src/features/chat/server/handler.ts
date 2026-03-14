@@ -6,7 +6,7 @@ import type { ApiKeyProvider } from "~/lib/api-keys/types";
 
 import { ensureThreadExistsWithLimitCheck, renameThreadById, saveMessage, updateThreadIcon } from "~/features/chat/queries";
 import { formatProviderError } from "~/features/chat/server/error";
-import { resolveProvider } from "~/features/chat/server/providers";
+import { resolveProvider, resolveToolProvider } from "~/features/chat/server/providers";
 import { streamChatResponse } from "~/features/chat/server/service";
 import { generateThreadMetadata } from "~/features/chat/server/thread";
 import { getUserSettingsAndKeys } from "~/features/settings/queries";
@@ -20,7 +20,6 @@ type ChatRequestBody = {
   modelId?: string;
   supportsNativePdf?: boolean;
   supportsTools?: boolean;
-  handoffEnabled?: boolean;
   isRegeneration?: boolean;
   modelPricing?: { prompt: string; completion: string };
 };
@@ -35,7 +34,6 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     modelId,
     supportsNativePdf,
     supportsTools,
-    handoffEnabled,
     isRegeneration,
     modelPricing,
   }: ChatRequestBody = await req.json();
@@ -96,7 +94,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     }
   }
 
-  const openrouterKey = resolvedKeys.openrouter;
+  const handoffProvider = resolveToolProvider(settings.toolHandoffModel, resolvedKeys);
 
   const { stream, createMetadata } = await streamChatResponse(
     messages,
@@ -114,36 +112,45 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     threadId,
     modelPricing,
     supportsTools,
-    handoffEnabled,
-    openrouterKey,
+    settings.handoffEnabled,
+    handoffProvider,
   );
 
   if (threadId && messages.length === 1 && messages[0].role === "user") {
     const wantsTitle = settings.autoThreadNaming;
     const wantsIcon = settings.autoThreadIcon && !settings.showSidebarIcons;
 
-    if ((wantsTitle || wantsIcon) && openrouterKey) {
-      const firstMessage = messages[0];
-      const userMessage = firstMessage.parts
-        ? firstMessage.parts
-            .filter(p => p.type === "text")
-            .map(p => (p as { text: string }).text)
-            .join("")
-        : "";
+    if (wantsTitle || wantsIcon) {
+      const titleProvider = wantsTitle ? resolveToolProvider(settings.toolTitleModel, resolvedKeys) : undefined;
+      const iconProvider = wantsIcon ? resolveToolProvider(settings.toolIconModel, resolvedKeys) : undefined;
 
-      generateThreadMetadata(userMessage, openrouterKey)
-        .then(async (metadata) => {
-          await Promise.all([
-            wantsTitle ? renameThreadById(threadId, userId, metadata.title) : Promise.resolve(),
-            wantsIcon ? updateThreadIcon(threadId, userId, metadata.icon) : Promise.resolve(),
-          ]);
-        })
-        .catch((error) => {
-          console.error("Failed to generate thread metadata", error);
-        });
+      if (titleProvider || iconProvider) {
+        const firstMessage = messages[0];
+        const userMessage = firstMessage.parts
+          ? firstMessage.parts
+              .filter(p => p.type === "text")
+              .map(p => (p as { text: string }).text)
+              .join("")
+          : "";
+
+        // Use the title provider if available, else icon provider
+        const metadataProvider = (titleProvider ?? iconProvider)!;
+
+        generateThreadMetadata(userMessage, metadataProvider)
+          .then(async (metadata) => {
+            await Promise.all([
+              wantsTitle ? renameThreadById(threadId, userId, metadata.title) : Promise.resolve(),
+              wantsIcon ? updateThreadIcon(threadId, userId, metadata.icon) : Promise.resolve(),
+            ]);
+          })
+          .catch((error) => {
+            console.error("Failed to generate thread metadata", error);
+          });
+      }
     }
   }
 
+  const openrouterKey = resolvedKeys.openrouter;
   const canFallback = resolved.providerType !== "openrouter" && !!openrouterKey;
 
   const onError = (error: unknown) => {
@@ -212,7 +219,8 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
           threadId,
           modelPricing,
           supportsTools,
-          openrouterKey,
+          settings.handoffEnabled,
+          handoffProvider,
         );
 
         writer.merge(toUIStream(fallback.stream, fallback.createMetadata));

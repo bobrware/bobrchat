@@ -5,7 +5,9 @@ import type { ThreadIcon } from "~/lib/db/schema/chat";
 
 import { THREAD_ICONS } from "~/lib/db/schema/chat";
 
-import { createOpenRouterProvider } from "../providers";
+import type { ResolvedProvider } from "../providers";
+
+import { createOpenAIProvider, createOpenRouterProvider } from "../providers";
 
 const ICON_DESCRIPTIONS: Record<ThreadIcon, string> = {
   "message-circle": "general thread or casual conversation",
@@ -30,18 +32,24 @@ export type ThreadMetadata = {
   icon: ThreadIcon;
 };
 
+function createProvider(resolved: ResolvedProvider) {
+  const factory = resolved.providerType === "openai"
+    ? createOpenAIProvider(resolved.apiKey)
+    : createOpenRouterProvider(resolved.apiKey);
+  return factory(resolved.providerModelId);
+}
+
 /**
  * Generates a short title for a thread based on the first user message.
  * Used for user-triggered title regeneration.
  */
-export async function generateThreadTitle(message: string, apiKey: string): Promise<string> {
+export async function generateThreadTitle(message: string, utilityProvider: ResolvedProvider): Promise<string> {
   if (!message || message.trim().length === 0) {
     return "New Thread";
   }
 
   try {
-    const provider = createOpenRouterProvider(apiKey);
-    const model = provider("google/gemini-3.1-flash-lite-preview");
+    const model = createProvider(utilityProvider);
 
     const { text } = await generateText({
       model,
@@ -62,14 +70,13 @@ export async function generateThreadTitle(message: string, apiKey: string): Prom
  * Generates an appropriate icon for a thread based on the first user message.
  * Used for user-triggered icon regeneration.
  */
-export async function generateThreadIcon(message: string, apiKey: string): Promise<ThreadIcon> {
+export async function generateThreadIcon(message: string, utilityProvider: ResolvedProvider): Promise<ThreadIcon> {
   if (!message || message.trim().length === 0) {
     return "message-circle";
   }
 
   try {
-    const provider = createOpenRouterProvider(apiKey);
-    const model = provider("google/gemini-3.1-flash-lite-preview");
+    const model = createProvider(utilityProvider);
 
     const iconList = THREAD_ICONS.map(icon => `- ${icon}: ${ICON_DESCRIPTIONS[icon]}`).join("\n");
 
@@ -104,17 +111,16 @@ Return ONLY the icon name. No explanation, no quotes, just the icon name.`,
  * the number of API round-trips compared to separate calls.
  *
  * @param message The first message from the user.
- * @param apiKey The OpenRouter API key.
+ * @param utilityProvider The resolved utility provider to use.
  * @returns {Promise<ThreadMetadata>} The generated title and icon.
  */
-export async function generateThreadMetadata(message: string, apiKey: string): Promise<ThreadMetadata> {
+export async function generateThreadMetadata(message: string, utilityProvider: ResolvedProvider): Promise<ThreadMetadata> {
   if (!message || message.trim().length === 0) {
     return { title: "New Thread", icon: "message-circle" };
   }
 
   try {
-    const provider = createOpenRouterProvider(apiKey);
-    const model = provider("google/gemini-3.1-flash-lite-preview");
+    const model = createProvider(utilityProvider);
 
     const iconList = THREAD_ICONS.map(icon => `- ${icon}: ${ICON_DESCRIPTIONS[icon]}`).join("\n");
 

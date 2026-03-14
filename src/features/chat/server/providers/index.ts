@@ -1,11 +1,14 @@
 import { and, eq } from "drizzle-orm";
 
+import type { ToolModelId } from "~/features/settings/types";
 import type { ApiKeyProvider } from "~/lib/api-keys/types";
 
 import { db } from "~/lib/db";
 import { modelProviderAvailability } from "~/lib/db/schema/models";
 
 import type { ProviderType, ResolvedProvider } from "./types";
+
+import { TOOL_MODEL_OPTIONS, UTILITY_MODELS } from "./types";
 
 /**
  * Maps a base provider name (from model ID prefix) to the corresponding
@@ -68,6 +71,69 @@ export async function resolveProvider(
   throw new Error("No API key configured. Please set up your OpenRouter or provider API key in settings.");
 }
 
+/**
+ * Resolves a provider for cheap utility LLM calls (title generation, icon
+ * classification, handoff summarisation).
+ *
+ * Priority: OpenRouter (cheapest) → OpenAI direct → undefined.
+ */
+export function resolveUtilityProvider(
+  resolvedKeys: Partial<Record<ApiKeyProvider, string>>,
+): ResolvedProvider | undefined {
+  const openrouterKey = resolvedKeys.openrouter;
+  if (openrouterKey) {
+    return {
+      providerType: "openrouter",
+      providerModelId: UTILITY_MODELS.openrouter,
+      apiKey: openrouterKey,
+    };
+  }
+
+  const openaiKey = resolvedKeys.openai;
+  if (openaiKey) {
+    return {
+      providerType: "openai",
+      providerModelId: UTILITY_MODELS.openai,
+      apiKey: openaiKey,
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Resolves a provider for a specific tool based on user's model preference.
+ * Falls back to `resolveUtilityProvider` when the chosen model's provider
+ * has no key configured.
+ */
+export function resolveToolProvider(
+  toolModelId: ToolModelId | undefined,
+  resolvedKeys: Partial<Record<ApiKeyProvider, string>>,
+): ResolvedProvider | undefined {
+  if (!toolModelId) {
+    return resolveUtilityProvider(resolvedKeys);
+  }
+
+  const option = TOOL_MODEL_OPTIONS.find(o => o.id === toolModelId);
+  if (!option) {
+    return resolveUtilityProvider(resolvedKeys);
+  }
+
+  // Prefer direct OpenAI when available
+  if (option.openaiModelId && resolvedKeys.openai) {
+    return { providerType: "openai", providerModelId: option.openaiModelId, apiKey: resolvedKeys.openai };
+  }
+
+  // Fall back to OpenRouter
+  if (resolvedKeys.openrouter && option.providers.includes("openrouter")) {
+    return { providerType: "openrouter", providerModelId: option.openrouterModelId, apiKey: resolvedKeys.openrouter };
+  }
+
+  // No matching key, fall back to cheapest available
+  return resolveUtilityProvider(resolvedKeys);
+}
+
 export { buildOpenAIProviderOptions, createOpenAIProvider } from "./openai";
 export { buildOpenRouterProviderOptions, createOpenRouterProvider } from "./openrouter";
-export type { ProviderType, ResolvedProvider } from "./types";
+export { TOOL_MODEL_OPTIONS, UTILITY_MODELS } from "./types";
+export type { ProviderType, ResolvedProvider, ToolModelOption } from "./types";

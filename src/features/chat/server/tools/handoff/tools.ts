@@ -2,6 +2,8 @@ import type { InferUITools, UIMessage } from "ai";
 
 import { tool } from "ai";
 
+import type { ResolvedProvider } from "~/features/chat/server/providers";
+
 import type { HandoffToolOutput } from "./types";
 
 import { createHandoffThread, generateHandoffPrompt } from "./service";
@@ -21,7 +23,7 @@ export function createHandoffTool(
   userId: string,
   currentThreadId: string,
   messages: UIMessage[],
-  openRouterApiKey: string,
+  utilityProvider: ResolvedProvider,
 ) {
   return {
     handoff: tool({
@@ -32,7 +34,7 @@ export function createHandoffTool(
           const generatedPrompt = await generateHandoffPrompt(
             messages,
             objective,
-            openRouterApiKey,
+            utilityProvider,
           );
 
           const newThreadId = await createHandoffThread(
