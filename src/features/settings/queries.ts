@@ -24,6 +24,10 @@ const DEFAULT_SETTINGS: UserSettingsData = {
   inputHeightScale: 0,
   profileCardWidget: "apiKeyStatus",
   autoArchiveAfterDays: 0,
+  toolTitleModel: "gemini-flash-lite",
+  toolIconModel: "gemini-flash-lite",
+  handoffEnabled: false,
+  toolHandoffModel: "gemini-flash-lite",
 };
 
 export type ResolvedUserData = {

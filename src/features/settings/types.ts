@@ -23,6 +23,9 @@ const accentColorSchema = z.union([
   z.number().min(0).max(360),
 ]);
 
+export const toolModelIds = ["gemini-flash-lite", "claude-haiku", "gpt-5-nano", "gpt-5-mini"] as const;
+export type ToolModelId = (typeof toolModelIds)[number];
+
 export const preferencesSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
   accentColor: accentColorSchema.default("green"),
@@ -45,6 +48,10 @@ export const preferencesSchema = z.object({
   hideModelProviderNames: z.boolean().default(false),
   profileCardWidget: z.enum(["apiKeyStatus", "openrouterCredits", "storageQuota"]).default("apiKeyStatus"),
   autoArchiveAfterDays: z.union([z.literal(0), z.literal(1), z.literal(3), z.literal(7), z.literal(14), z.literal(30), z.literal(90)]).default(0),
+  toolTitleModel: z.enum(toolModelIds).default("gemini-flash-lite"),
+  toolIconModel: z.enum(toolModelIds).default("gemini-flash-lite"),
+  handoffEnabled: z.boolean().default(false),
+  toolHandoffModel: z.enum(toolModelIds).default("gemini-flash-lite"),
 });
 
 /**
@@ -69,6 +76,10 @@ export const preferencesUpdateSchema = z.object({
   hideModelProviderNames: z.boolean().optional(),
   profileCardWidget: z.enum(["apiKeyStatus", "openrouterCredits", "storageQuota"]).optional(),
   autoArchiveAfterDays: z.union([z.literal(0), z.literal(1), z.literal(3), z.literal(7), z.literal(14), z.literal(30), z.literal(90)]).optional(),
+  toolTitleModel: z.enum(toolModelIds).optional(),
+  toolIconModel: z.enum(toolModelIds).optional(),
+  handoffEnabled: z.boolean().optional(),
+  toolHandoffModel: z.enum(toolModelIds).optional(),
 });
 
 export type PreferencesInput = z.infer<typeof preferencesSchema>;
@@ -147,6 +158,10 @@ export type UserSettingsData = {
   hideModelProviderNames?: boolean;
   profileCardWidget: ProfileCardWidget;
   autoArchiveAfterDays: AutoArchiveAfterDays;
+  toolTitleModel: ToolModelId;
+  toolIconModel: ToolModelId;
+  handoffEnabled: boolean;
+  toolHandoffModel: ToolModelId;
   // List of favorite model IDs from OpenRouter (max 10)
   favoriteModels?: string[];
   // Derived: which providers have a key configured (server can verify server-stored keys,

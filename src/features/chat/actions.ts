@@ -8,9 +8,9 @@ import { deleteFile } from "~/features/attachments/lib/storage";
 import { deleteUserAttachmentsByIds, getThreadStats, listThreadAttachments, resolveUserAttachmentsByStoragePaths } from "~/features/attachments/queries";
 import { getRequiredSession } from "~/features/auth/lib/session";
 import { addTagToThread, archiveThreadById, createTag, createThreadWithLimitCheck, deleteMessagesAfterCount, deleteTagById, deleteThreadById, getMessagesByThreadId, listTagsByUserId, removeTagFromThread, renameThreadById, saveMessage, updateTagById, updateThreadIcon } from "~/features/chat/queries";
+import { resolveToolProvider } from "~/features/chat/server/providers";
 import { generateThreadIcon, generateThreadTitle } from "~/features/chat/server/thread";
 import { getShareByThreadId, revokeThreadShare, upsertThreadShare } from "~/features/chat/sharing-queries";
-import { resolveKey } from "~/lib/api-keys/server";
 import { serverEnv } from "~/lib/env";
 
 function extractStoragePathsFromThreadMessages(messages: ChatUIMessage[]): string[] {
@@ -215,13 +215,15 @@ export async function regenerateThreadName(threadId: string, clientKey?: string,
 
   const userId = session.user.id;
 
-  // Fetch API key and messages in parallel
-  const [openrouterKey, threadMessages] = await Promise.all([
-    resolveKey(userId, "openrouter", clientKey),
+  // Fetch API keys, settings, and messages in parallel
+  const { getUserSettingsAndKeys } = await import("~/features/settings/queries");
+  const [{ settings, resolvedKeys }, threadMessages] = await Promise.all([
+    getUserSettingsAndKeys(userId, clientKey ? { openrouter: clientKey } : undefined),
     getMessagesByThreadId(threadId),
   ]);
 
-  if (!openrouterKey) {
+  const utilityProvider = resolveToolProvider(settings.toolTitleModel, resolvedKeys);
+  if (!utilityProvider) {
     throw new Error("No API key configured. Provide a browser key or store one on the server.");
   }
 
@@ -255,7 +257,7 @@ export async function regenerateThreadName(threadId: string, clientKey?: string,
       : "";
   }
 
-  const newTitle = await generateThreadTitle(userContent, openrouterKey);
+  const newTitle = await generateThreadTitle(userContent, utilityProvider);
 
   const renamed = await renameThreadById(threadId, userId, newTitle);
   if (!renamed) {
@@ -279,12 +281,14 @@ export async function regenerateThreadIcon(threadId: string, clientKey?: string)
 
   const userId = session.user.id;
 
-  const [openrouterKey, threadMessages] = await Promise.all([
-    resolveKey(userId, "openrouter", clientKey),
+  const { getUserSettingsAndKeys } = await import("~/features/settings/queries");
+  const [{ settings, resolvedKeys }, threadMessages] = await Promise.all([
+    getUserSettingsAndKeys(userId, clientKey ? { openrouter: clientKey } : undefined),
     getMessagesByThreadId(threadId),
   ]);
 
-  if (!openrouterKey) {
+  const utilityProvider = resolveToolProvider(settings.toolIconModel, resolvedKeys);
+  if (!utilityProvider) {
     throw new Error("No API key configured. Provide a browser key or store one on the server.");
   }
 
@@ -302,7 +306,7 @@ export async function regenerateThreadIcon(threadId: string, clientKey?: string)
         .join("")
     : "";
 
-  const newIcon = await generateThreadIcon(userContent, openrouterKey);
+  const newIcon = await generateThreadIcon(userContent, utilityProvider);
 
   const updated = await updateThreadIcon(threadId, userId, newIcon);
   if (!updated) {

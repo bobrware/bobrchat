@@ -1,10 +1,12 @@
 import { createUIMessageStream, createUIMessageStreamResponse, NoSuchToolError } from "ai";
 
+import type { ResolvedProvider } from "~/features/chat/server/providers";
 import type { ChatUIMessage } from "~/features/chat/types";
 import type { ApiKeyProvider } from "~/lib/api-keys/types";
 
 import { ensureThreadExistsWithLimitCheck, renameThreadById, saveMessage, updateThreadIcon } from "~/features/chat/queries";
 import { formatProviderError } from "~/features/chat/server/error";
+import { resolveProvider, resolveToolProvider } from "~/features/chat/server/providers";
 import { streamChatResponse } from "~/features/chat/server/service";
 import { generateThreadMetadata } from "~/features/chat/server/thread";
 import { getUserSettingsAndKeys } from "~/features/settings/queries";
@@ -18,7 +20,6 @@ type ChatRequestBody = {
   modelId?: string;
   supportsNativePdf?: boolean;
   supportsTools?: boolean;
-  handoffEnabled?: boolean;
   isRegeneration?: boolean;
   modelPricing?: { prompt: string; completion: string };
 };
@@ -33,7 +34,6 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     modelId,
     supportsNativePdf,
     supportsTools,
-    handoffEnabled,
     isRegeneration,
     modelPricing,
   }: ChatRequestBody = await req.json();
@@ -45,7 +45,6 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     getUserSettingsAndKeys(userId, clientKeys),
   ]);
 
-  const openrouterKey = resolvedKeys.openrouter;
   const parallelKey = searchEnabled ? resolvedKeys.parallel : undefined;
 
   if (threadStatus && !threadStatus.ok) {
@@ -67,7 +66,11 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     });
   }
 
-  if (!openrouterKey) {
+  let resolved;
+  try {
+    resolved = await resolveProvider(baseModelId, resolvedKeys);
+  }
+  catch {
     return new Response(JSON.stringify({ error: "No API key configured. Provide a browser key or store one on the server." }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -91,10 +94,12 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     }
   }
 
+  const handoffProvider = resolveToolProvider(settings.toolHandoffModel, resolvedKeys);
+
   const { stream, createMetadata } = await streamChatResponse(
     messages,
     baseModelId,
-    openrouterKey,
+    resolved,
     settings,
     userId,
     searchEnabled,
@@ -107,7 +112,8 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     threadId,
     modelPricing,
     supportsTools,
-    handoffEnabled,
+    settings.handoffEnabled,
+    handoffProvider,
   );
 
   if (threadId && messages.length === 1 && messages[0].role === "user") {
@@ -115,26 +121,37 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     const wantsIcon = settings.autoThreadIcon && !settings.showSidebarIcons;
 
     if (wantsTitle || wantsIcon) {
-      const firstMessage = messages[0];
-      const userMessage = firstMessage.parts
-        ? firstMessage.parts
-            .filter(p => p.type === "text")
-            .map(p => (p as { text: string }).text)
-            .join("")
-        : "";
+      const titleProvider = wantsTitle ? resolveToolProvider(settings.toolTitleModel, resolvedKeys) : undefined;
+      const iconProvider = wantsIcon ? resolveToolProvider(settings.toolIconModel, resolvedKeys) : undefined;
 
-      generateThreadMetadata(userMessage, openrouterKey)
-        .then(async (metadata) => {
-          await Promise.all([
-            wantsTitle ? renameThreadById(threadId, userId, metadata.title) : Promise.resolve(),
-            wantsIcon ? updateThreadIcon(threadId, userId, metadata.icon) : Promise.resolve(),
-          ]);
-        })
-        .catch((error) => {
-          console.error("Failed to generate thread metadata", error);
-        });
+      if (titleProvider || iconProvider) {
+        const firstMessage = messages[0];
+        const userMessage = firstMessage.parts
+          ? firstMessage.parts
+              .filter(p => p.type === "text")
+              .map(p => (p as { text: string }).text)
+              .join("")
+          : "";
+
+        // Use the title provider if available, else icon provider
+        const metadataProvider = (titleProvider ?? iconProvider)!;
+
+        generateThreadMetadata(userMessage, metadataProvider)
+          .then(async (metadata) => {
+            await Promise.all([
+              wantsTitle ? renameThreadById(threadId, userId, metadata.title) : Promise.resolve(),
+              wantsIcon ? updateThreadIcon(threadId, userId, metadata.icon) : Promise.resolve(),
+            ]);
+          })
+          .catch((error) => {
+            console.error("Failed to generate thread metadata", error);
+          });
+      }
     }
   }
+
+  const openrouterKey = resolvedKeys.openrouter;
+  const canFallback = resolved.providerType !== "openrouter" && !!openrouterKey;
 
   const onError = (error: unknown) => {
     if (!NoSuchToolError.isInstance(error)) {
@@ -151,19 +168,63 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
         await saveMessage(threadId, userId, responseMessage);
       }
     },
-    execute: ({ writer }) => {
-      writer.merge(
-        stream.toUIMessageStream({
+    execute: async ({ writer }) => {
+      const toUIStream = (s: typeof stream, meta: typeof createMetadata) =>
+        s.toUIMessageStream({
           originalMessages: messages,
-          messageMetadata: ({ part }) => {
-            const metadata = createMetadata(part);
-            return metadata;
-          },
+          messageMetadata: ({ part }) => meta(part),
           sendSources: true,
           sendReasoning: true,
           onError,
-        }),
-      );
+        });
+
+      if (!canFallback) {
+        writer.merge(toUIStream(stream, createMetadata));
+        return;
+      }
+
+      const primaryStream = toUIStream(stream, createMetadata);
+      const reader = primaryStream.getReader();
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done)
+            break;
+          writer.write(value);
+        }
+      }
+      catch (error) {
+        console.error("Direct provider failed, falling back to OpenRouter", error);
+
+        const fallbackProvider: ResolvedProvider = {
+          providerType: "openrouter",
+          providerModelId: baseModelId,
+          apiKey: openrouterKey!,
+        };
+
+        const fallback = await streamChatResponse(
+          messages,
+          baseModelId,
+          fallbackProvider,
+          settings,
+          userId,
+          searchEnabled,
+          parallelKey,
+          {
+            useOcrForPdfs: settings.useOcrForPdfs,
+            supportsNativePdf: supportsNativePdf ?? false,
+          },
+          reasoningLevel,
+          threadId,
+          modelPricing,
+          supportsTools,
+          settings.handoffEnabled,
+          handoffProvider,
+        );
+
+        writer.merge(toUIStream(fallback.stream, fallback.createMetadata));
+      }
     },
   });
 
