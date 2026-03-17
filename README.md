@@ -7,7 +7,11 @@
 </h1>
 
 <p>
-  An simple, fast, and open-source AI chat client with multi-model support.
+  Pay only for what you use. Chat with Claude, GPT-5, Llama, and 200+ models
+in one place.
+  <br>
+  See exactly what each message costs. No subscription plans,
+no lock-in.
   <br><br>
   <a href="#features">Features</a>
   ·
@@ -28,12 +32,32 @@
 <!-- TODO: Add screenshot here -->
 <!-- ![Screenshot](docs/screenshot.png) -->
 
-## Features
+## Why BobrChat?
 
-- **Multi-model chat**: access models from OpenAI, Anthropic, Google, Meta, and more via [OpenRouter](https://openrouter.ai)
-- **File attachments**: upload and reference files in conversations
-- **Shareable threads**: generate public links to share conversations
-- **Customizable**: themes, model settings, and system prompts
+- **Pay only for what you use**: Real-time cost breakdown per message. No $20/mo plans you forget about.
+- **Compare models instantly**: Switch between Claude, GPT, Llama, and 200+ others. See which is cheapest for your use case.
+- **Your keys, your control**: Store API keys locally or encrypted on our servers. We don't charge you for the API usage.
+- **File attachments & web search**: Upload files and search the web. Get real answers, not hallucinations.
+- **Open source**: Full source code available. No vendor lock-in.
+
+## How BobrChat Compares
+
+| Feature                     | **BobrChat**                  | ChatGPT Plus      | Claude Pro        | Perplexity Pro    | t3.chat                    |
+| --------------------------- | ----------------------------- | ----------------- | ----------------- | ----------------- | -------------------------- |
+| **Monthly Cost**            | $0–$2.99                      | $20               | $20               | $20               | $8                         |
+| **Pricing Model**           | Pay-per-token\*               | Flat subscription | Flat subscription | Flat subscription | Flat subscription + limits |
+| **Model Selection**         | 200+ via OpenRouter           | 1 (GPT only)      | 1 (Claude only)   | 5+ models         | ~30 models                 |
+| **Cost Visibility**         | ✓ Per-message breakdown       | ✗ Hidden          | ✗ Hidden          | ✗ Hidden          | ✗ Hidden                   |
+| **Bring Your Own API Keys** | ✓ All tiers                   | ✗                 | ✗                 | ✗                 | ✗ On paid plans            |
+| **Free Tier**               | ✓ Full BYOK support           | ✗                 | ✗                 | ✗                 | Limited (trial)            |
+| **Usage Limits**            | ✗ None (pay what you use)     | ✓ Undisclosed     | ✓ Undisclosed     | ✓ Rate-limited    | ✓ "Credits" system         |
+| **Web Search**              | ✓ Parallel.ai                 | ✓                 | ✓                 | ✓                 | ✓                          |
+| **File Attachments**        | ✓                             | ✓                 | ✓                 | ✓                 | ✓                          |
+| **Open Source**             | ✓ (BSL 1.1→MIT Jan 2027)      | ✗                 | ✗                 | ✗                 | ✗                          |
+| **Data Privacy**            | ✓ Encrypted, local key option | ? Proprietary     | ? Proprietary     | ? Proprietary     | ? Proprietary              |
+| **Shareable Conversations** | ✓                             | ✓                 | ✓                 | ✓                 | ✓                          |
+
+\*All users (free and Plus) can bring their own API keys. Plus tier ($2.99/mo) adds: unlimited threads, 100MB file storage, priority support.
 
 ## Tech Stack
 
