@@ -88,10 +88,13 @@ export function useChatInputController({
   // Direct providers (OpenAI, Anthropic) handle PDFs natively — override
   // the OpenRouter-derived capability when the user has a matching key.
   const willUseDirectProvider = React.useMemo(() => {
-    if (!selectedModelId) return false;
+    if (!selectedModelId)
+      return false;
     const prefix = selectedModelId.split("/")[0];
-    if (prefix === "openai" && hasOpenAIKey) return true;
-    if (prefix === "anthropic" && hasAnthropicKey) return true;
+    if (prefix === "openai" && hasOpenAIKey)
+      return true;
+    if (prefix === "anthropic" && hasAnthropicKey)
+      return true;
     return false;
   }, [selectedModelId, hasOpenAIKey, hasAnthropicKey]);
 

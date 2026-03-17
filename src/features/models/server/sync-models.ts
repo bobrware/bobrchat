@@ -267,13 +267,15 @@ function findAnthropicModelMatch(strippedId: string, apiModelIds: string[]): str
 
   for (const id of [strippedId, normalized]) {
     const exact = apiModelIds.find(apiId => apiId === id);
-    if (exact) return exact;
+    if (exact)
+      return exact;
 
     const candidates = apiModelIds
-      .filter(apiId => apiId.startsWith(id + "-"))
+      .filter(apiId => apiId.startsWith(`${id}-`))
       .sort();
 
-    if (candidates.length > 0) return candidates[candidates.length - 1];
+    if (candidates.length > 0)
+      return candidates[candidates.length - 1];
   }
 
   return undefined;
@@ -310,7 +312,6 @@ export async function syncAnthropicProviderAvailability(): Promise<{
     const anthropicApiModelIds: string[] = [];
     let afterId: string | undefined;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const url = new URL("https://api.anthropic.com/v1/models");
       if (afterId) {
