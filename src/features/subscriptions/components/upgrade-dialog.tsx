@@ -27,6 +27,7 @@ const PLUS_FEATURES = {
   features: [
     "Unlimited threads",
     "100 MB storage",
+    "Free thread titling",
     "Priority support",
   ],
 };

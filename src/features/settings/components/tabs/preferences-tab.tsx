@@ -3,6 +3,7 @@
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useUserSettings } from "~/features/settings/hooks/use-user-settings";
+import { useSubscription } from "~/features/subscriptions/hooks/use-subscription";
 
 import {
   AdvancedFeaturesSection,
@@ -19,6 +20,7 @@ import {
 
 export function PreferencesTab() {
   const { data: settings, isLoading } = useUserSettings({ enabled: true });
+  const { data: subscription } = useSubscription();
 
   if (isLoading || !settings) {
     return <PreferencesTabSkeleton />;
@@ -27,7 +29,7 @@ export function PreferencesTab() {
   return (
     <div className="flex h-full flex-col">
       <div className="w-full space-y-8 p-6">
-        <ChatBehaviorSection settings={settings} />
+        <ChatBehaviorSection settings={settings} tier={subscription?.tier} />
 
         <Separator />
 

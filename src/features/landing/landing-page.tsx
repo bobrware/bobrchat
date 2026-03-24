@@ -37,7 +37,7 @@ const jsonLd = {
       "price": "2.99",
       "priceCurrency": "USD",
       "name": "Plus",
-      "description": "Unlimited threads, 100 MB storage, priority support",
+      "description": "Unlimited threads, 100 MB storage, free titling, priority support",
     },
   ],
 };
@@ -367,6 +367,11 @@ export function LandingPage() {
                     <b>100 MB</b>
                     {" "}
                     storage
+                  </li>
+                  <li>
+                    <b>Free</b>
+                    {" "}
+                    titling
                   </li>
                   <li>Priority support</li>
                 </ul>

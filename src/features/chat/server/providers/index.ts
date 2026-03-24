@@ -2,9 +2,11 @@ import { and, eq } from "drizzle-orm";
 
 import type { ToolModelId } from "~/features/settings/types";
 import type { ApiKeyProvider } from "~/lib/api-keys/types";
+import type { SubscriptionTier } from "~/lib/db/schema/subscriptions";
 
 import { db } from "~/lib/db";
 import { modelProviderAvailability } from "~/lib/db/schema/models";
+import { serverEnv } from "~/lib/env";
 
 import type { ProviderType, ResolvedProvider } from "./types";
 
@@ -72,14 +74,18 @@ export async function resolveProvider(
   throw new Error("No API key configured. Please set up your OpenRouter or provider API key in settings.");
 }
 
+const PAID_TIERS: SubscriptionTier[] = ["beta", "plus"];
+
 /**
  * Resolves a provider for cheap utility LLM calls (title generation, icon
  * classification, handoff summarisation).
  *
- * Priority: OpenRouter (cheapest) → OpenAI direct → undefined.
+ * Priority: OpenRouter (cheapest) → OpenAI direct → Anthropic direct
+ *           → platform tooling key (paid plans only) → undefined.
  */
 export function resolveUtilityProvider(
   resolvedKeys: Partial<Record<ApiKeyProvider, string>>,
+  tier?: SubscriptionTier,
 ): ResolvedProvider | undefined {
   const openrouterKey = resolvedKeys.openrouter;
   if (openrouterKey) {
@@ -108,6 +114,14 @@ export function resolveUtilityProvider(
     };
   }
 
+  if (tier && PAID_TIERS.includes(tier) && serverEnv.TOOLING_OPENROUTER_API_KEY) {
+    return {
+      providerType: "openrouter",
+      providerModelId: UTILITY_MODELS.openrouter,
+      apiKey: serverEnv.TOOLING_OPENROUTER_API_KEY,
+    };
+  }
+
   return undefined;
 }
 
@@ -119,14 +133,15 @@ export function resolveUtilityProvider(
 export function resolveToolProvider(
   toolModelId: ToolModelId | undefined,
   resolvedKeys: Partial<Record<ApiKeyProvider, string>>,
+  tier?: SubscriptionTier,
 ): ResolvedProvider | undefined {
   if (!toolModelId) {
-    return resolveUtilityProvider(resolvedKeys);
+    return resolveUtilityProvider(resolvedKeys, tier);
   }
 
   const option = TOOL_MODEL_OPTIONS.find(o => o.id === toolModelId);
   if (!option) {
-    return resolveUtilityProvider(resolvedKeys);
+    return resolveUtilityProvider(resolvedKeys, tier);
   }
 
   // Prefer direct OpenAI when available
@@ -144,8 +159,13 @@ export function resolveToolProvider(
     return { providerType: "openrouter", providerModelId: option.openrouterModelId, apiKey: resolvedKeys.openrouter };
   }
 
+  // Fall back to platform tooling key for paid tiers
+  if (tier && PAID_TIERS.includes(tier) && serverEnv.TOOLING_OPENROUTER_API_KEY && option.providers.includes("openrouter")) {
+    return { providerType: "openrouter", providerModelId: option.openrouterModelId, apiKey: serverEnv.TOOLING_OPENROUTER_API_KEY };
+  }
+
   // No matching key, fall back to cheapest available
-  return resolveUtilityProvider(resolvedKeys);
+  return resolveUtilityProvider(resolvedKeys, tier);
 }
 
 export { buildAnthropicProviderOptions, createAnthropicProvider } from "./anthropic";
