@@ -21,7 +21,7 @@ const jsonLd = {
   "@type": "WebApplication",
   "name": "BobrChat",
   "url": "https://bobrchat.com",
-  "description": "Fast, minimal AI chat interface. Bring your own API key and pay only what you use. Chat with Claude, GPT, Gemini, and more.",
+  "description": "Fast, minimal AI chat interface. Bring your own API keys and pay only what you use. Chat with Claude, GPT, Gemini, and more with OpenRouter, OpenAI, Anthropic, and more.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Web",
   "offers": [
@@ -72,10 +72,10 @@ const faqJsonLd = {
     },
     {
       "@type": "Question",
-      "name": "Can I use providers other than OpenRouter?",
+      "name": "Which API providers do you support?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Currently, we support OpenRouter for access to hundreds of models with one key. We are actively adding support for other providers like Anthropic, OpenAI, and Google Gemini.",
+        "text": "We support OpenRouter, OpenAI, Anthropic, and more providers coming soon. Use your existing API keys with any of these providers to access hundreds of models.",
       },
     },
     {
@@ -138,7 +138,7 @@ export function LandingPage() {
               </span>
             </h1>
             <p className="text-muted-foreground mx-auto max-w-xl text-lg">
-              Bring your own API key. No model limits. No daily usage. Just a clean
+              Bring your own API keys from OpenRouter, OpenAI, Anthropic, and more. No model limits. No daily usage. Just a clean
               interface for the models you want to use.
             </p>
             <div className="flex justify-center gap-3 pt-2">
@@ -220,9 +220,9 @@ export function LandingPage() {
                 lg:border-r
               `}
               >
-                <h2 className="text-xl font-semibold">Your keys, your choice</h2>
+                <h2 className="text-xl font-semibold">Multiple API keys</h2>
                 <p className="text-muted-foreground mt-2 text-sm">
-                  Store API keys locally in your browser, or encrypted on our
+                  Use OpenRouter, OpenAI, Anthropic, and more. Store keys locally in your browser, or encrypted on our
                   servers. You're always in control.
                 </p>
               </div>
@@ -282,7 +282,7 @@ export function LandingPage() {
               <AccordionItem value="faq-1">
                 <AccordionTrigger>How does "Pay only what you use" work?</AccordionTrigger>
                 <AccordionContent>
-                  Paid AI services usually charge a flat $20 monthly fee, whether you send one message or one thousand. BobrChat connects to your OpenRouter account, which bills you by the token. If you only spend $4 on tokens this month, you only pay $4.
+                  Paid AI services usually charge a flat $20 monthly fee, whether you send one message or one thousand. BobrChat connects to your API provider (OpenRouter, OpenAI, Anthropic, etc.), which bills you by the token. If you only spend $4 on tokens this month, you only pay $4.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="faq-2">
@@ -292,9 +292,9 @@ export function LandingPage() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="faq-3">
-                <AccordionTrigger>Can I use providers other than OpenRouter?</AccordionTrigger>
+                <AccordionTrigger>Which API providers do you support?</AccordionTrigger>
                 <AccordionContent>
-                  Currently, we support OpenRouter for access to hundreds of models with one key. We are actively adding support for other providers like Anthropic, OpenAI, and Google Gemini. This will allow you to use your existing credits or tier-status directly with those official APIs.
+                  We support OpenRouter, OpenAI, Anthropic, and more providers coming soon. Use your existing API keys with any of these providers to access hundreds of models. This allows you to use your existing credits or tier-status directly with the official APIs you prefer.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="faq-4">
@@ -384,8 +384,8 @@ export function LandingPage() {
               </div>
             </div>
             <p className="text-muted-foreground mt-4 max-w-lg text-sm">
-              Both plans include encrypted messages and Bring Your Own Key support.
-              You always pay for your own API usage through OpenRouter.
+              Both plans include encrypted messages and multi-provider API key support (OpenRouter, OpenAI, Anthropic, and more).
+              You always pay for your own API usage through your chosen provider.
             </p>
           </div>
         </div>

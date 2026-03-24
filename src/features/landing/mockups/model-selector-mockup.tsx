@@ -4,20 +4,20 @@ import { cn } from "~/lib/utils";
 
 const mockModels = [
   {
-    name: "Claude Opus 4.5",
-    id: "anthropic/claude-opus-4.5",
+    name: "Claude Opus 4.6",
+    id: "anthropic/claude-opus-4.6",
     selected: true,
     capabilities: ["vision", "reasoning", "search"],
   },
   {
-    name: "GPT-5.2",
-    id: "openai/gpt-5.2",
+    name: "GPT-5.4",
+    id: "openai/gpt-5.4",
     selected: false,
     capabilities: ["vision", "search"],
   },
   {
-    name: "GLM 4.7 Flash",
-    id: "z-ai/glm-4.7-flash",
+    name: "GLM 5",
+    id: "z-ai/glm-5",
     selected: false,
     capabilities: ["reasoning", "search"],
   },

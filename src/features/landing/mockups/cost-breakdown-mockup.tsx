@@ -3,7 +3,7 @@ export function CostBreakdownMockup() {
     <div className="flex w-full max-w-sm flex-col items-center gap-2">
       {/* Message metrics bar */}
       <div className="text-muted-foreground flex items-center gap-2 text-xs">
-        <span className="font-medium">claude-opus-4.5</span>
+        <span className="font-medium">claude-opus-4.6</span>
         <span>•</span>
         <span>42.8 tok/s</span>
         <span>•</span>

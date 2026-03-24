@@ -1,6 +1,4 @@
-import { KeyIcon, ServerIcon, SmartphoneIcon } from "lucide-react";
-
-import { Badge } from "~/components/ui/badge";
+import { CheckCircleIcon, KeyIcon, ServerIcon, SmartphoneIcon } from "lucide-react";
 
 export function ApiKeysMockup() {
   return (
@@ -11,20 +9,32 @@ export function ApiKeysMockup() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <KeyIcon className="size-4" />
-        <span className="text-sm font-medium">OpenRouter API Key</span>
-        <Badge variant="outline" className="border-primary bg-primary/10">
-          <span className="text-xs">Configured</span>
-        </Badge>
+        <span className="text-sm font-medium">API Keys</span>
       </div>
 
-      {/* Input mockup */}
-      <div className={`
-        border-border bg-muted/30 flex h-9 items-center border px-3
-      `}
-      >
-        <span className="text-muted-foreground font-mono text-sm">
-          sk-or-v1-••••••••••••••••
-        </span>
+      {/* Provider list */}
+      <div className="space-y-2">
+        <div className={`
+          border-border bg-muted/30 flex items-center justify-between border p-3
+        `}
+        >
+          <span className="text-sm font-medium">OpenRouter</span>
+          <CheckCircleIcon className="text-primary size-4" />
+        </div>
+        <div className={`
+          border-border bg-muted/30 flex items-center justify-between border p-3
+        `}
+        >
+          <span className="text-sm font-medium">OpenAI</span>
+          <CheckCircleIcon className="text-primary size-4" />
+        </div>
+        <div className={`
+          border-border bg-muted/30 flex items-center justify-between border p-3
+        `}
+        >
+          <span className="text-sm font-medium">Anthropic</span>
+          <CheckCircleIcon className="text-primary size-4" />
+        </div>
       </div>
 
       {/* Storage options */}
