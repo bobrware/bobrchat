@@ -10,6 +10,7 @@ import { resolveProvider, resolveToolProvider } from "~/features/chat/server/pro
 import { streamChatResponse } from "~/features/chat/server/service";
 import { generateThreadMetadata } from "~/features/chat/server/thread";
 import { getUserSettingsAndKeys } from "~/features/settings/queries";
+import { getUserTier } from "~/features/subscriptions/queries";
 
 type ChatRequestBody = {
   messages: ChatUIMessage[];
@@ -40,9 +41,10 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
 
   const baseModelId = modelId || "google/gemini-3-flash-preview";
 
-  const [threadStatus, { settings, resolvedKeys }] = await Promise.all([
+  const [threadStatus, { settings, resolvedKeys }, tier] = await Promise.all([
     threadId ? ensureThreadExistsWithLimitCheck(threadId, userId) : Promise.resolve(null),
     getUserSettingsAndKeys(userId, clientKeys),
+    getUserTier(userId),
   ]);
 
   const parallelKey = searchEnabled ? resolvedKeys.parallel : undefined;
@@ -94,7 +96,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     }
   }
 
-  const handoffProvider = resolveToolProvider(settings.toolHandoffModel, resolvedKeys);
+  const handoffProvider = resolveToolProvider(settings.toolHandoffModel, resolvedKeys, tier);
 
   const { stream, createMetadata } = await streamChatResponse(
     messages,
@@ -121,8 +123,8 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     const wantsIcon = settings.autoThreadIcon && !settings.showSidebarIcons;
 
     if (wantsTitle || wantsIcon) {
-      const titleProvider = wantsTitle ? resolveToolProvider(settings.toolTitleModel, resolvedKeys) : undefined;
-      const iconProvider = wantsIcon ? resolveToolProvider(settings.toolIconModel, resolvedKeys) : undefined;
+      const titleProvider = wantsTitle ? resolveToolProvider(settings.toolTitleModel, resolvedKeys, tier) : undefined;
+      const iconProvider = wantsIcon ? resolveToolProvider(settings.toolIconModel, resolvedKeys, tier) : undefined;
 
       if (titleProvider || iconProvider) {
         const firstMessage = messages[0];

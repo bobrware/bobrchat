@@ -11,6 +11,7 @@ import { addTagToThread, archiveThreadById, createTag, createThreadWithLimitChec
 import { resolveToolProvider } from "~/features/chat/server/providers";
 import { generateThreadIcon, generateThreadTitle } from "~/features/chat/server/thread";
 import { getShareByThreadId, revokeThreadShare, upsertThreadShare } from "~/features/chat/sharing-queries";
+import { getUserTier } from "~/features/subscriptions/queries";
 /**
  * Creates a new thread for the authenticated user (idempotent).
  * Accepts an optional client-generated threadId for optimistic updates.
@@ -163,14 +164,15 @@ export async function regenerateThreadName(threadId: string, clientKey?: string,
 
   const userId = session.user.id;
 
-  // Fetch API keys, settings, and messages in parallel
+  // Fetch API keys, settings, tier, and messages in parallel
   const { getUserSettingsAndKeys } = await import("~/features/settings/queries");
-  const [{ settings, resolvedKeys }, threadMessages] = await Promise.all([
+  const [{ settings, resolvedKeys }, threadMessages, tier] = await Promise.all([
     getUserSettingsAndKeys(userId, clientKey ? { openrouter: clientKey } : undefined),
     getMessagesByThreadId(threadId),
+    getUserTier(userId),
   ]);
 
-  const utilityProvider = resolveToolProvider(settings.toolTitleModel, resolvedKeys);
+  const utilityProvider = resolveToolProvider(settings.toolTitleModel, resolvedKeys, tier);
   if (!utilityProvider) {
     throw new Error("No API key configured. Provide a browser key or store one on the server.");
   }
@@ -230,12 +232,13 @@ export async function regenerateThreadIcon(threadId: string, clientKey?: string)
   const userId = session.user.id;
 
   const { getUserSettingsAndKeys } = await import("~/features/settings/queries");
-  const [{ settings, resolvedKeys }, threadMessages] = await Promise.all([
+  const [{ settings, resolvedKeys }, threadMessages, tier] = await Promise.all([
     getUserSettingsAndKeys(userId, clientKey ? { openrouter: clientKey } : undefined),
     getMessagesByThreadId(threadId),
+    getUserTier(userId),
   ]);
 
-  const utilityProvider = resolveToolProvider(settings.toolIconModel, resolvedKeys);
+  const utilityProvider = resolveToolProvider(settings.toolIconModel, resolvedKeys, tier);
   if (!utilityProvider) {
     throw new Error("No API key configured. Provide a browser key or store one on the server.");
   }

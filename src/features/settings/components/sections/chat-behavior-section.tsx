@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import type { AutoArchiveAfterDays, PreferencesUpdate, UserSettingsData } from "~/features/settings/types";
 import type { ThreadIcon } from "~/lib/db/schema/chat";
+import type { SubscriptionTier } from "~/lib/db/schema/subscriptions";
 
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -26,11 +27,15 @@ const autoArchiveLabels: Record<AutoArchiveAfterDays, string> = {
   90: "After 3 months",
 };
 
+const PAID_TIERS: SubscriptionTier[] = ["beta", "plus"];
+
 type ChatBehaviorSectionProps = {
   settings: UserSettingsData;
+  tier?: SubscriptionTier;
 };
 
-export function ChatBehaviorSection({ settings }: ChatBehaviorSectionProps) {
+export function ChatBehaviorSection({ settings, tier }: ChatBehaviorSectionProps) {
+  const isPaid = tier ? PAID_TIERS.includes(tier) : false;
   const updatePreferences = useUpdatePreferences();
 
   const [defaultThreadName, setDefaultThreadName] = useState("");
@@ -92,6 +97,7 @@ export function ChatBehaviorSection({ settings }: ChatBehaviorSectionProps) {
         description="Automatically generate a short title for new threads."
         enabled={settings.autoThreadNaming}
         onToggle={enabled => save({ autoThreadNaming: enabled })}
+        note={isPaid ? "Included with your plan" : "Free with Plus or Beta plans. Uses your API key otherwise."}
       />
 
       {!settings.showSidebarIcons && (
@@ -100,6 +106,7 @@ export function ChatBehaviorSection({ settings }: ChatBehaviorSectionProps) {
           description="Automatically select a relevant icon based on thread content."
           enabled={settings.autoThreadIcon}
           onToggle={enabled => save({ autoThreadIcon: enabled })}
+          note={isPaid ? "Included with your plan" : "Free with Plus or Beta plans. Uses your API key otherwise."}
         />
       )}
 
