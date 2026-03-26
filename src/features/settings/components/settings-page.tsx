@@ -53,19 +53,19 @@ import { ModelsTab } from "./tabs/models-tab";
 import { SubscriptionCard } from "./ui/subscription-card";
 import { UserAvatar } from "./ui/user-avatar";
 
-type SectionId =
-  | "appearance"
-  | "input"
-  | "new-thread"
-  | "thread-behavior"
-  | "tools"
-  | "advanced"
-  | "models"
-  | "integrations"
-  | "profile"
-  | "security"
-  | "attachments"
-  | "data";
+type SectionId
+  = | "appearance"
+    | "input"
+    | "new-thread"
+    | "thread-behavior"
+    | "tools"
+    | "advanced"
+    | "models"
+    | "integrations"
+    | "profile"
+    | "security"
+    | "attachments"
+    | "data";
 
 type NavItem = {
   id: SectionId;
@@ -249,8 +249,7 @@ export function SettingsPage({ initialTab = "appearance" }: SettingsPageProps) {
                   onClick={handleSignOut}
                   className={`
                     text-muted-foreground flex w-full items-center gap-3
-                    rounded-md px-3 py-1.5 text-sm font-medium
-                    transition-colors
+                    rounded-md px-3 py-1.5 text-sm font-medium transition-colors
                     hover:bg-destructive/10 hover:text-destructive
                   `}
                 >
@@ -377,8 +376,8 @@ export function SettingsPage({ initialTab = "appearance" }: SettingsPageProps) {
                                 onClick={() => handleSectionChange(item.id)}
                                 className={cn(
                                   `
-                                    flex items-center gap-3 rounded-md px-3
-                                    py-2 text-sm font-medium whitespace-nowrap
+                                    flex items-center gap-3 rounded-md px-3 py-2
+                                    text-sm font-medium whitespace-nowrap
                                     transition-colors
                                   `,
                                   isActive
