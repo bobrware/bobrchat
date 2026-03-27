@@ -27,10 +27,8 @@ no lock-in.
 
 </div>
 
----
+![A video of BobrChat answering a request](https://github.com/user-attachments/assets/2a2afae0-55ff-435a-b744-64ed05aa780e)
 
-<!-- TODO: Add screenshot here -->
-<!-- ![Screenshot](docs/screenshot.png) -->
 
 ## Why BobrChat?
 
