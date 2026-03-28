@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import type { AutoArchiveAfterDays, PreferencesUpdate, UserSettingsData } from "~/features/settings/types";
-import type { ThreadIcon } from "~/lib/db/schema/chat";
 import type { SubscriptionTier } from "~/lib/db/schema/subscriptions";
 
 import { Label } from "~/components/ui/label";
@@ -12,9 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { useUpdatePreferences } from "~/features/settings/hooks/use-user-settings";
 import { autoArchiveOptions } from "~/features/settings/types";
 
-import { IconSelectItem } from "../ui/icon-select-item";
 import { SettingsSection } from "../ui/settings-section";
-import { TextInputItem } from "../ui/text-input-item";
 import { ToggleItem } from "../ui/toggle-item";
 
 const autoArchiveLabels: Record<AutoArchiveAfterDays, string> = {
@@ -38,16 +34,6 @@ export function ChatBehaviorSection({ settings, tier }: ChatBehaviorSectionProps
   const isPaid = tier ? PAID_TIERS.includes(tier) : false;
   const updatePreferences = useUpdatePreferences();
 
-  const [defaultThreadName, setDefaultThreadName] = useState("");
-  const [defaultThreadIcon, setDefaultThreadIcon] = useState<ThreadIcon>("message-circle");
-  const [customInstructions, setCustomInstructions] = useState("");
-
-  useEffect(() => {
-    setDefaultThreadName(settings.defaultThreadName);
-    setDefaultThreadIcon(settings.defaultThreadIcon);
-    setCustomInstructions(settings.customInstructions ?? "");
-  }, [settings]);
-
   const save = async (patch: PreferencesUpdate) => {
     try {
       await updatePreferences.mutateAsync(patch);
@@ -61,37 +47,9 @@ export function ChatBehaviorSection({ settings, tier }: ChatBehaviorSectionProps
 
   return (
     <SettingsSection
-      title="Thread Behavior"
-      description="Configure how threads behave."
+      title="Thread Automation"
+      description="Configure automatic behaviors for your threads."
     >
-      <TextInputItem
-        label="Default Thread Name"
-        description="The default name for new threads."
-        value={defaultThreadName}
-        placeholder="New Thread"
-        maxLength={80}
-        onChange={setDefaultThreadName}
-        onBlur={() => {
-          if (defaultThreadName !== settings.defaultThreadName && defaultThreadName.length <= 80) {
-            save({ defaultThreadName });
-          }
-        }}
-      />
-
-      {!settings.showSidebarIcons && (
-        <IconSelectItem
-          label="Default Thread Icon"
-          description="The default icon for new threads."
-          value={defaultThreadIcon}
-          onChange={(icon) => {
-            setDefaultThreadIcon(icon);
-            if (icon !== settings.defaultThreadIcon) {
-              save({ defaultThreadIcon: icon });
-            }
-          }}
-        />
-      )}
-
       <ToggleItem
         label="Automatic Thread Renaming"
         description="Automatically generate a short title for new threads."
@@ -133,20 +91,6 @@ export function ChatBehaviorSection({ settings, tier }: ChatBehaviorSectionProps
           </SelectContent>
         </Select>
       </div>
-
-      <TextInputItem
-        label="Custom Instructions"
-        description="These instructions will be included in every thread."
-        value={customInstructions}
-        placeholder="Add any custom instructions for the AI assistant..."
-        size="multi"
-        onChange={setCustomInstructions}
-        onBlur={() => {
-          if (customInstructions !== (settings.customInstructions ?? "")) {
-            save({ customInstructions });
-          }
-        }}
-      />
     </SettingsSection>
   );
 }

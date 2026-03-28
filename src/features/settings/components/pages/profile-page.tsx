@@ -102,10 +102,10 @@ export function ProfilePage() {
             <UserSecurity authToken={authToken} />
           </SettingsSection>
 
-        <Separator />
+          <Separator />
 
-        <DeleteAccountSection />
-                </WorkOsWidgets>
+          <DeleteAccountSection />
+        </WorkOsWidgets>
       </div>
     </div>
   );

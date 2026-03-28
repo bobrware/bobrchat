@@ -17,6 +17,7 @@ import { useUpdatePreferences, useUserSettings } from "~/features/settings/hooks
 
 import { SelectionCardItem } from "../ui/selection-card-item";
 import { SettingsSection } from "../ui/settings-section";
+import { ToggleItem } from "../ui/toggle-item";
 
 const themeOptions = [
   { value: "light" as const, label: "Light", icon: SunIcon },
@@ -164,6 +165,20 @@ export function ThemePage() {
               </Select>
             </div>
           </div>
+        </SettingsSection>
+
+        <Separator />
+
+        <SettingsSection
+          title="Model Display"
+          description="Configure how model names are displayed."
+        >
+          <ToggleItem
+            label="Hide Provider Names"
+            description="Show only model names with logos instead of 'Provider: Model Name'."
+            enabled={settings.hideModelProviderNames ?? false}
+            onToggle={enabled => save({ hideModelProviderNames: enabled })}
+          />
         </SettingsSection>
       </div>
     </div>

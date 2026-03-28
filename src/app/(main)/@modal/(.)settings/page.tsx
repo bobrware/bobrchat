@@ -28,8 +28,8 @@ export default function SettingsModal() {
         className={`
           flex h-[calc(100dvh-2rem)] max-h-none w-[calc(100vw-2rem)] max-w-none
           gap-0 overflow-hidden rounded-xl p-0
-          md:h-[calc(100dvh-2.5rem)] md:w-[calc(100vw-6rem)]
           sm:max-w-none
+          md:h-[calc(100dvh-2.5rem)] md:w-[calc(100vw-6rem)]
         `}
       >
         <DialogTitle className="sr-only">Settings</DialogTitle>

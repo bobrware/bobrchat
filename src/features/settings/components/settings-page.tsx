@@ -12,7 +12,6 @@ import {
   DatabaseIcon,
   KeyboardIcon,
   KeyIcon,
-  LayoutListIcon,
   LogOutIcon,
   MenuIcon,
   MessageSquarePlusIcon,
@@ -41,19 +40,18 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { handleSignOut as signOutAction } from "~/features/auth/actions";
 import { useSession } from "~/features/auth/lib/auth-client";
 import { useUserSettings } from "~/features/settings/hooks/use-user-settings";
-import { useSubscription } from "~/features/subscriptions/hooks/use-subscription";
 import { usePreviousRoute } from "~/features/settings/previous-route-context";
+import { useSubscription } from "~/features/subscriptions/hooks/use-subscription";
 import { cn } from "~/lib/utils";
 
 import { AdvancedPage } from "./pages/advanced-page";
 import { InputPage } from "./pages/input-page";
-import { ModelDisplayPage } from "./pages/model-display-page";
 import { NewThreadPage } from "./pages/new-thread-page";
 import { ProfilePage } from "./pages/profile-page";
 import { SidebarPage } from "./pages/sidebar-page";
 import { SubscriptionPage } from "./pages/subscription-page";
 import { ThemePage } from "./pages/theme-page";
-import { ThreadBehaviorPage } from "./pages/thread-behavior-page";
+import { ThreadAutomationPage } from "./pages/thread-automation-page";
 import { ToolsPage } from "./pages/tools-page";
 import { AttachmentsTab } from "./tabs/attachments-tab";
 import { IntegrationsTab } from "./tabs/integrations-tab";
@@ -64,10 +62,9 @@ type SectionId
   = | "subscription"
     | "theme"
     | "sidebar"
-    | "model-display"
     | "input"
     | "new-thread"
-    | "thread-behavior"
+    | "thread-automation"
     | "tools"
     | "advanced"
     | "models"
@@ -96,19 +93,17 @@ const navGroups: NavGroup[] = [
   {
     label: "Appearance",
     items: [
-      { id: "theme", label: "Theme & Colors", icon: PaletteIcon },
+      { id: "theme", label: "Theme, Colors & Fonts", icon: PaletteIcon },
       { id: "sidebar", label: "Sidebar", icon: PanelLeftIcon },
-      { id: "model-display", label: "Model Display", icon: LayoutListIcon },
       { id: "input", label: "Input & Controls", icon: KeyboardIcon },
     ],
   },
   {
     label: "Chat",
     items: [
-      { id: "new-thread", label: "New Thread", icon: MessageSquarePlusIcon },
-      { id: "thread-behavior", label: "Thread Behavior", icon: BoltIcon },
+      { id: "new-thread", label: "New Threads", icon: MessageSquarePlusIcon },
+      { id: "thread-automation", label: "Thread Automation", icon: BoltIcon },
       { id: "tools", label: "Tools", icon: WrenchIcon },
-      { id: "advanced", label: "Advanced", icon: SparklesIcon },
     ],
   },
   {
@@ -116,6 +111,7 @@ const navGroups: NavGroup[] = [
     items: [
       { id: "models", label: "Models", icon: SparklesIcon },
       { id: "integrations", label: "Integrations", icon: KeyIcon },
+      { id: "advanced", label: "Advanced Features", icon: SparklesIcon },
     ],
   },
   {
@@ -130,17 +126,20 @@ const allNavItems = navGroups.flatMap(g => g.items);
 
 // Map old tab/section param values to new section IDs for backwards compat
 const sectionAliases: Record<string, SectionId> = {
-  interface: "theme",
-  appearance: "theme",
-  fonts: "theme",
-  data: "profile",
-  preferences: "thread-behavior",
-  integrations: "integrations",
-  models: "models",
-  attachments: "attachments",
-  auth: "profile",
-  security: "profile",
-  billing: "subscription",
+  "interface": "theme",
+  "appearance": "theme",
+  "fonts": "theme",
+  "model-display": "theme",
+  "thread-behavior": "thread-automation",
+  "thread-settings": "new-thread",
+  "data": "profile",
+  "preferences": "thread-automation",
+  "integrations": "integrations",
+  "models": "models",
+  "attachments": "attachments",
+  "auth": "profile",
+  "security": "profile",
+  "billing": "subscription",
 };
 
 type SettingsPageProps = {
@@ -254,7 +253,10 @@ export function SettingsPage({ initialTab = "theme", isModal = false, onClose }:
                         {item.label}
                         {item.id === "subscription" && subscription?.tier && (
                           <span className={cn(
-                            "ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase leading-none",
+                            `
+                              ml-auto rounded-full px-2 py-0.5 text-[10px]
+                              leading-none font-semibold uppercase
+                            `,
                             subscription.tier === "free"
                               ? "bg-muted text-muted-foreground"
                               : "bg-primary/10 text-primary",
@@ -397,7 +399,10 @@ export function SettingsPage({ initialTab = "theme", isModal = false, onClose }:
                               {item.label}
                               {item.id === "subscription" && subscription?.tier && (
                                 <span className={cn(
-                                  "ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase leading-none",
+                                  `
+                                    ml-auto rounded-full px-2 py-0.5 text-[10px]
+                                    leading-none font-semibold uppercase
+                                  `,
                                   subscription.tier === "free"
                                     ? "bg-muted text-muted-foreground"
                                     : "bg-primary/10 text-primary",
@@ -474,10 +479,9 @@ export function SettingsPage({ initialTab = "theme", isModal = false, onClose }:
           {activeSection === "subscription" && <SubscriptionPage />}
           {activeSection === "theme" && <ThemePage />}
           {activeSection === "sidebar" && <SidebarPage />}
-          {activeSection === "model-display" && <ModelDisplayPage />}
           {activeSection === "input" && <InputPage />}
           {activeSection === "new-thread" && <NewThreadPage />}
-          {activeSection === "thread-behavior" && <ThreadBehaviorPage />}
+          {activeSection === "thread-automation" && <ThreadAutomationPage />}
           {activeSection === "tools" && <ToolsPage />}
           {activeSection === "advanced" && <AdvancedPage />}
           {activeSection === "models" && <ModelsTab />}
