@@ -14,6 +14,7 @@ import { useCallback, useEffect } from "react";
 
 import type { AccentColor } from "~/features/settings/types";
 
+import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useUserSettings } from "~/features/settings/hooks/use-user-settings";
 
@@ -37,7 +38,7 @@ function getRadixAccentColor(accentColor?: AccentColor): (typeof ACCENT_COLOR_MA
   return "grass";
 }
 
-export function AuthTab() {
+export function ProfilePage() {
   const { getAccessToken, loading: tokenLoading } = useAccessToken();
   const { refreshAuth } = useAuth();
   const { resolvedTheme } = useTheme();
@@ -68,12 +69,12 @@ export function AuthTab() {
   );
 
   if (tokenLoading) {
-    return <AuthTabSkeleton />;
+    return <ProfilePageSkeleton />;
   }
 
   return (
     <div className="flex h-full flex-col">
-      <div className="w-full p-6">
+      <div className="mx-auto w-full max-w-3xl space-y-8 p-6">
         <WorkOsWidgets
           queryClient={queryClient}
           theme={{
@@ -92,12 +93,16 @@ export function AuthTab() {
             <UserProfile authToken={authToken} />
           </SettingsSection>
 
+          <Separator />
+
           <SettingsSection
             title="Security"
             description="Manage your password and multi-factor authentication."
           >
             <UserSecurity authToken={authToken} />
           </SettingsSection>
+
+          <Separator />
 
           <DeleteAccountSection />
         </WorkOsWidgets>
@@ -106,10 +111,10 @@ export function AuthTab() {
   );
 }
 
-function AuthTabSkeleton() {
+function ProfilePageSkeleton() {
   return (
     <div className="flex h-full flex-col">
-      <div className="w-full space-y-8 p-6">
+      <div className="mx-auto w-full max-w-3xl space-y-8 p-6">
         <div className="space-y-6">
           <div className="space-y-1">
             <Skeleton className="h-4 w-20" />
