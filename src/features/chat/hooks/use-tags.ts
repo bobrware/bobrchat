@@ -9,6 +9,7 @@ export type Tag = {
   id: string;
   name: string;
   color: string;
+  description: string | null;
 };
 
 export function useTags() {
@@ -23,7 +24,7 @@ export function useCreateTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { name: string; color: string }) =>
+    mutationFn: (input: { name: string; color: string; description?: string }) =>
       createUserTag(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TAGS_KEY });
@@ -58,7 +59,7 @@ export function useUpdateTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ tagId, input }: { tagId: string; input: { name?: string; color?: string } }) =>
+    mutationFn: ({ tagId, input }: { tagId: string; input: { name?: string; color?: string; description?: string | null } }) =>
       updateUserTag(tagId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TAGS_KEY });

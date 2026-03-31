@@ -19,6 +19,7 @@ import {
   PanelLeftIcon,
   PlugIcon,
   SlidersIcon,
+  TagsIcon,
   WrenchIcon,
   XIcon,
 } from "lucide-react";
@@ -51,6 +52,7 @@ import { NewThreadPage } from "./pages/new-thread-page";
 import { ProfilePage } from "./pages/profile-page";
 import { SidebarPage } from "./pages/sidebar-page";
 import { SubscriptionPage } from "./pages/subscription-page";
+import { TagsPage } from "./pages/tags-page";
 import { ThemePage } from "./pages/theme-page";
 import { ThreadAutomationPage } from "./pages/thread-automation-page";
 import { ToolsPage } from "./pages/tools-page";
@@ -66,6 +68,7 @@ type SectionId
     | "input"
     | "new-thread"
     | "thread-automation"
+    | "tags"
     | "tools"
     | "advanced"
     | "models"
@@ -104,6 +107,7 @@ const navGroups: NavGroup[] = [
     items: [
       { id: "new-thread", label: "New Threads", icon: MessageSquarePlusIcon },
       { id: "thread-automation", label: "Thread Automation", icon: BoltIcon },
+      { id: "tags", label: "Tags", icon: TagsIcon },
       { id: "tools", label: "Tools", icon: WrenchIcon },
     ],
   },
@@ -135,6 +139,7 @@ const sectionAliases: Record<string, SectionId> = {
   "thread-settings": "new-thread",
   "data": "profile",
   "preferences": "thread-automation",
+  "tags": "tags",
   "integrations": "integrations",
   "models": "models",
   "attachments": "attachments",
@@ -483,6 +488,7 @@ export function SettingsPage({ initialTab = "theme", isModal = false, onClose }:
           {activeSection === "input" && <InputPage />}
           {activeSection === "new-thread" && <NewThreadPage />}
           {activeSection === "thread-automation" && <ThreadAutomationPage />}
+          {activeSection === "tags" && <TagsPage settings={settings ?? undefined} />}
           {activeSection === "tools" && <ToolsPage />}
           {activeSection === "advanced" && <AdvancedPage />}
           {activeSection === "models" && <ModelsTab />}

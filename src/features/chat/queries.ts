@@ -14,7 +14,7 @@ import { serverEnv } from "~/lib/env";
 import { decryptMessageWithKey, deriveUserKey, encryptMessage } from "~/lib/security/encryption";
 import { getKeyMeta, getOrCreateKeyMeta, getSaltsForUser } from "~/lib/security/keys";
 
-export type TagRow = { id: string; name: string; color: string };
+export type TagRow = { id: string; name: string; color: string; description: string | null };
 
 function extractAttachmentRefs(message: ChatUIMessage): { ids: string[]; storagePaths: string[] } {
   const parts = (message as unknown as { parts?: unknown }).parts;
@@ -737,7 +737,7 @@ export async function deleteMessagesAfterCount(threadId: string, userId: string,
  */
 export async function listTagsByUserId(userId: string): Promise<TagRow[]> {
   const result = await db
-    .select({ id: tags.id, name: tags.name, color: tags.color })
+    .select({ id: tags.id, name: tags.name, color: tags.color, description: tags.description })
     .from(tags)
     .where(eq(tags.userId, userId))
     .orderBy(tags.name);
@@ -747,12 +747,12 @@ export async function listTagsByUserId(userId: string): Promise<TagRow[]> {
 /**
  * Create a new tag for a user.
  */
-export async function createTag(userId: string, input: { name: string; color: string }): Promise<TagRow> {
+export async function createTag(userId: string, input: { name: string; color: string; description?: string }): Promise<TagRow> {
   const result = await db
     .insert(tags)
-    .values({ userId, name: input.name.trim(), color: input.color })
+    .values({ userId, name: input.name.trim(), color: input.color, description: input.description?.trim() || null })
     .returning();
-  return { id: result[0].id, name: result[0].name, color: result[0].color };
+  return { id: result[0].id, name: result[0].name, color: result[0].color, description: result[0].description };
 }
 
 /**
@@ -769,12 +769,14 @@ export async function deleteTagById(userId: string, tagId: string): Promise<bool
 /**
  * Update a tag's name and/or color. Verifies ownership.
  */
-export async function updateTagById(userId: string, tagId: string, input: { name?: string; color?: string }): Promise<boolean> {
+export async function updateTagById(userId: string, tagId: string, input: { name?: string; color?: string; description?: string | null }): Promise<boolean> {
   const updates: Record<string, unknown> = { updatedAt: new Date() };
   if (input.name !== undefined)
     updates.name = input.name.trim();
   if (input.color !== undefined)
     updates.color = input.color;
+  if (input.description !== undefined)
+    updates.description = input.description?.trim() || null;
 
   const result = await db
     .update(tags)
@@ -822,6 +824,7 @@ export async function getTagsForThreads(userId: string, threadIds: string[]): Pr
       id: tags.id,
       name: tags.name,
       color: tags.color,
+      description: tags.description,
     })
     .from(threadTags)
     .innerJoin(tags, eq(threadTags.tagId, tags.id))
@@ -835,7 +838,7 @@ export async function getTagsForThreads(userId: string, threadIds: string[]): Pr
   const map = new Map<string, TagRow[]>();
   for (const row of rows) {
     const existing = map.get(row.threadId) || [];
-    existing.push({ id: row.id, name: row.name, color: row.color });
+    existing.push({ id: row.id, name: row.name, color: row.color, description: row.description });
     map.set(row.threadId, existing);
   }
   return map;
