@@ -11,7 +11,9 @@ import { ColorPicker, hueToOklch } from "~/components/ui/color-picker";
 import { Input } from "~/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Separator } from "~/components/ui/separator";
+import { Textarea } from "~/components/ui/textarea";
 import { useCreateTag, useDeleteTag, useTags, useUpdateTag } from "~/features/chat/hooks/use-tags";
+import { cn } from "~/lib/utils";
 
 import { SettingsSection } from "../ui/settings-section";
 
@@ -26,13 +28,14 @@ const TAG_COLOR_PRESETS: ColorPreset[] = [
   { value: "#ec4899", color: "#ec4899", label: "Pink" },
 ];
 
-function TagRow({ tag }: { tag: { id: string; name: string; color: string } }) {
+function TagRow({ tag }: { tag: { id: string; name: string; color: string; description?: string } }) {
   const updateTagMutation = useUpdateTag();
   const deleteTagMutation = useDeleteTag();
 
   const [isEditing, setIsEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [editName, setEditName] = useState(tag.name);
+  const [editDescription, setEditDescription] = useState(tag.description ?? "");
   const [editColor, setEditColor] = useState<string | number>(tag.color);
   const [customHue, setCustomHue] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +80,7 @@ function TagRow({ tag }: { tag: { id: string; name: string; color: string } }) {
 
   const handleCancel = () => {
     setEditName(tag.name);
+    setEditDescription(tag.description ?? "");
     setEditColor(tag.color);
     setCustomHue(null);
     setIsEditing(false);
@@ -99,72 +103,81 @@ function TagRow({ tag }: { tag: { id: string; name: string; color: string } }) {
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-1.5 rounded-md border p-1.5">
-        <Input
-          ref={inputRef}
-          type="text"
-          value={editName}
-          onChange={e => setEditName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter")
-              handleSave();
-            else if (e.key === "Escape")
-              handleCancel();
-          }}
-          className="h-7 flex-1 text-xs"
-          maxLength={32}
+      <div className="space-y-1.5 rounded-md border p-1.5">
+        <div className="flex items-center gap-1.5">
+          <Input
+            ref={inputRef}
+            type="text"
+            value={editName}
+            onChange={e => setEditName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter")
+                handleSave();
+              else if (e.key === "Escape")
+                handleCancel();
+            }}
+            className="h-7 flex-1 text-xs"
+            maxLength={32}
+          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="size-7 shrink-0"
+                style={{ borderColor: resolvedEditColor, color: resolvedEditColor }}
+              >
+                <PaletteIcon className="size-3" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3" align="start">
+              <ColorPicker
+                presets={TAG_COLOR_PRESETS}
+                value={editColor}
+                onChange={(val) => {
+                  setEditColor(val);
+                  if (typeof val !== "number") {
+                    setCustomHue(null);
+                  }
+                }}
+                customHue={customHue}
+                onCustomHueChange={(hue) => {
+                  setCustomHue(hue);
+                  setEditColor(hue);
+                }}
+                onCustomHueCommit={(hue) => {
+                  setCustomHue(hue);
+                  setEditColor(hue);
+                }}
+                swatchSize="sm"
+              />
+            </PopoverContent>
+          </Popover>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="size-7 shrink-0"
+            onClick={handleSave}
+            disabled={updateTagMutation.isPending}
+          >
+            <CheckIcon className="size-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="size-7 shrink-0"
+            onClick={handleCancel}
+          >
+            <XIcon className="size-3" />
+          </Button>
+        </div>
+        <Textarea
+          value={editDescription}
+          onChange={e => setEditDescription(e.target.value)}
+          placeholder="Describe when this tag should be applied..."
+          className="min-h-16 resize-none text-xs"
+          maxLength={200}
         />
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              className="size-7 shrink-0"
-              style={{ borderColor: resolvedEditColor, color: resolvedEditColor }}
-            >
-              <PaletteIcon className="size-3" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-3" align="start">
-            <ColorPicker
-              presets={TAG_COLOR_PRESETS}
-              value={editColor}
-              onChange={(val) => {
-                setEditColor(val);
-                if (typeof val !== "number") {
-                  setCustomHue(null);
-                }
-              }}
-              customHue={customHue}
-              onCustomHueChange={(hue) => {
-                setCustomHue(hue);
-                setEditColor(hue);
-              }}
-              onCustomHueCommit={(hue) => {
-                setCustomHue(hue);
-                setEditColor(hue);
-              }}
-              swatchSize="sm"
-            />
-          </PopoverContent>
-        </Popover>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="size-7 shrink-0"
-          onClick={handleSave}
-          disabled={updateTagMutation.isPending}
-        >
-          <CheckIcon className="size-3" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="size-7 shrink-0"
-          onClick={handleCancel}
-        >
-          <XIcon className="size-3" />
-        </Button>
       </div>
     );
   }
@@ -172,12 +185,17 @@ function TagRow({ tag }: { tag: { id: string; name: string; color: string } }) {
   return (
     <div className="group/tag flex items-center gap-2 rounded-md py-1">
       <span
-        className="size-3 shrink-0 rounded-full"
+        className="size-3 shrink-0 self-start mt-1.5 rounded-full"
         style={{ backgroundColor: tag.color }}
       />
-      <span className="flex-1 truncate text-sm">{tag.name}</span>
+      <div className="min-w-0 flex-1">
+        <span className="block truncate text-sm">{tag.name}</span>
+        {tag.description && (
+          <p className="text-muted-foreground truncate text-xs">{tag.description}</p>
+        )}
+      </div>
       <div className={`
-        flex items-center gap-0.5 opacity-0 transition-opacity
+        flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity
         group-hover/tag:opacity-100
       `}
       >
@@ -185,9 +203,10 @@ function TagRow({ tag }: { tag: { id: string; name: string; color: string } }) {
           variant="ghost"
           size="icon-sm"
           className="size-6"
-          title="Rename tag"
+          title="Edit tag"
           onClick={() => {
             setEditName(tag.name);
+            setEditDescription(tag.description ?? "");
             setEditColor(tag.color);
             setCustomHue(null);
             setConfirmingDelete(false);
@@ -233,6 +252,7 @@ export function TagsPage() {
   const createTagMutation = useCreateTag();
 
   const [newTagName, setNewTagName] = useState("");
+  const [newTagDescription, setNewTagDescription] = useState("");
   const [selectedColor, setSelectedColor] = useState<string | number>(TAG_COLOR_PRESETS[5].value);
   const [customHue, setCustomHue] = useState<number | null>(null);
 
@@ -248,6 +268,7 @@ export function TagsPage() {
     try {
       await createTagMutation.mutateAsync({ name, color: resolvedColor });
       setNewTagName("");
+      setNewTagDescription("");
       setSelectedColor(TAG_COLOR_PRESETS[5].value);
       setCustomHue(null);
       toast.success("Tag created");
@@ -264,68 +285,91 @@ export function TagsPage() {
           title="Tags"
           description="Create, rename, or delete tags to organize your threads."
         >
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  className={`
-                    ring-offset-background size-5 shrink-0 cursor-pointer
-                    rounded-full border-2
-                    focus-visible:ring-ring focus-visible:ring-2
-                    focus-visible:ring-offset-2 focus-visible:outline-none
-                  `}
-                  style={{
-                    backgroundColor: resolvedColor,
-                    borderColor: resolvedColor,
-                  }}
-                  title="Pick color"
-                />
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-3" align="start">
-                <ColorPicker
-                  presets={TAG_COLOR_PRESETS}
-                  value={selectedColor}
-                  onChange={(val) => {
-                    setSelectedColor(val);
-                    if (typeof val !== "number") {
-                      setCustomHue(null);
-                    }
-                  }}
-                  customHue={customHue}
-                  onCustomHueChange={(hue) => {
-                    setCustomHue(hue);
-                    setSelectedColor(hue);
-                  }}
-                  onCustomHueCommit={(hue) => {
-                    setCustomHue(hue);
-                    setSelectedColor(hue);
-                  }}
-                  swatchSize="sm"
-                />
-              </PopoverContent>
-            </Popover>
-            <Input
-              type="text"
-              placeholder="New tag name..."
-              value={newTagName}
-              onChange={e => setNewTagName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter")
-                  handleCreateTag();
-              }}
-              className="h-8"
-              maxLength={32}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={handleCreateTag}
-              disabled={!newTagName.trim() || createTagMutation.isPending}
+          <div>
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className={`
+                      ring-offset-background size-5 shrink-0 cursor-pointer
+                      rounded-full border-2
+                      focus-visible:ring-ring focus-visible:ring-2
+                      focus-visible:ring-offset-2 focus-visible:outline-none
+                    `}
+                    style={{
+                      backgroundColor: resolvedColor,
+                      borderColor: resolvedColor,
+                    }}
+                    title="Pick color"
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="start">
+                  <ColorPicker
+                    presets={TAG_COLOR_PRESETS}
+                    value={selectedColor}
+                    onChange={(val) => {
+                      setSelectedColor(val);
+                      if (typeof val !== "number") {
+                        setCustomHue(null);
+                      }
+                    }}
+                    customHue={customHue}
+                    onCustomHueChange={(hue) => {
+                      setCustomHue(hue);
+                      setSelectedColor(hue);
+                    }}
+                    onCustomHueCommit={(hue) => {
+                      setCustomHue(hue);
+                      setSelectedColor(hue);
+                    }}
+                    swatchSize="sm"
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="text"
+                placeholder="New tag name..."
+                value={newTagName}
+                onChange={e => setNewTagName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter")
+                    handleCreateTag();
+                }}
+                className="h-8"
+                maxLength={32}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0"
+                onClick={handleCreateTag}
+                disabled={!newTagName.trim() || createTagMutation.isPending}
+              >
+                <PlusIcon className="size-3.5" />
+                Add
+              </Button>
+            </div>
+            <div className={cn(
+              `
+                grid transition-[grid-template-rows,opacity] duration-200
+                ease-out
+              `,
+              newTagName.trim()
+                ? "grid-rows-[1fr] opacity-100 pt-2"
+                : "grid-rows-[0fr] opacity-0",
+            )}
             >
-              <PlusIcon className="size-3.5" />
-              Add
-            </Button>
+              <div className="overflow-hidden">
+                <Textarea
+                  value={newTagDescription}
+                  onChange={e => setNewTagDescription(e.target.value)}
+                  placeholder="Optional: describe when this tag should be applied (used for auto-tagging)..."
+                  className="min-h-16 resize-none text-xs"
+                  maxLength={200}
+                  tabIndex={newTagName.trim() ? 0 : -1}
+                />
+              </div>
+            </div>
           </div>
           {tags && tags.length > 0
             ? (
