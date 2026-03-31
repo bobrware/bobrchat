@@ -28,7 +28,7 @@ const TAG_COLOR_PRESETS: ColorPreset[] = [
   { value: "#ec4899", color: "#ec4899", label: "Pink" },
 ];
 
-function TagRow({ tag }: { tag: { id: string; name: string; color: string; description?: string } }) {
+function TagRow({ tag }: { tag: { id: string; name: string; color: string; description: string | null } }) {
   const updateTagMutation = useUpdateTag();
   const deleteTagMutation = useDeleteTag();
 
@@ -59,7 +59,8 @@ function TagRow({ tag }: { tag: { id: string; name: string; color: string; descr
       return;
     }
 
-    const hasChanges = name !== tag.name || resolvedEditColor !== tag.color;
+    const description = editDescription.trim() || null;
+    const hasChanges = name !== tag.name || resolvedEditColor !== tag.color || description !== (tag.description ?? null);
     if (!hasChanges) {
       setIsEditing(false);
       return;
@@ -68,7 +69,7 @@ function TagRow({ tag }: { tag: { id: string; name: string; color: string; descr
     try {
       await updateTagMutation.mutateAsync({
         tagId: tag.id,
-        input: { name, color: resolvedEditColor },
+        input: { name, color: resolvedEditColor, description },
       });
       toast.success("Tag updated");
       setIsEditing(false);
@@ -266,7 +267,8 @@ export function TagsPage() {
       return;
 
     try {
-      await createTagMutation.mutateAsync({ name, color: resolvedColor });
+      const description = newTagDescription.trim() || undefined;
+      await createTagMutation.mutateAsync({ name, color: resolvedColor, description });
       setNewTagName("");
       setNewTagDescription("");
       setSelectedColor(TAG_COLOR_PRESETS[5].value);

@@ -393,7 +393,7 @@ export async function listUserTags(): Promise<TagRow[]> {
 /**
  * Creates a new tag for the authenticated user.
  */
-export async function createUserTag(input: { name: string; color: string }): Promise<TagRow> {
+export async function createUserTag(input: { name: string; color: string; description?: string }): Promise<TagRow> {
   const session = await getRequiredSession();
 
   return createTag(session.user.id, input);
@@ -414,7 +414,7 @@ export async function deleteUserTag(tagId: string): Promise<void> {
 /**
  * Updates a tag for the authenticated user.
  */
-export async function updateUserTag(tagId: string, input: { name?: string; color?: string }): Promise<void> {
+export async function updateUserTag(tagId: string, input: { name?: string; color?: string; description?: string | null }): Promise<void> {
   const session = await getRequiredSession();
 
   const updated = await updateTagById(session.user.id, tagId, input);
