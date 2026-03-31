@@ -152,7 +152,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     }
   }
 
-  if (threadId && settings.autoTagging) {
+  if (threadId && settings.autoTagging && messages.length === 1 && messages[0].role === "user") {
     const tagProvider = resolveToolProvider(settings.toolTagModel, resolvedKeys, tier);
 
     if (tagProvider) {
