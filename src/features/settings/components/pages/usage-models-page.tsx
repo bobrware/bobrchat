@@ -159,7 +159,11 @@ export function UsageModelsPage() {
                                 ? (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <span className="inline-flex cursor-default items-center gap-1">
+                                        <span className={`
+                                          inline-flex cursor-default
+                                          items-center gap-1
+                                        `}
+                                        >
                                           Unknown
                                           <InfoIcon className="size-3" />
                                         </span>

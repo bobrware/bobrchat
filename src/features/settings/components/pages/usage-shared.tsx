@@ -101,7 +101,7 @@ export function UsagePageLayout({ children, period, setPeriod, data, isLoading }
         {isLoading || !data
           ? <LoadingSkeleton />
           : children}
-        <p className="text-muted-foreground pb-6 pt-4 text-center text-xs">
+        <p className="text-muted-foreground pt-4 pb-6 text-center text-xs">
           Costs are estimated from listed model pricing and may not reflect actual charges.
           Verify your spending in your provider&apos;s dashboard.
         </p>
