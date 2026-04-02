@@ -6,6 +6,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { useMemo } from "react";
 
 import type { GroupedThreads, TagGroup } from "~/features/chat/utils/thread-grouper";
+import type { ApiKeyProvider } from "~/lib/api-keys/types";
 import type { ThreadIcon } from "~/lib/db/schema/chat";
 
 import { archiveThread, deleteThread, fetchThreadStats, regenerateThreadIcon, regenerateThreadName, renameThread, setThreadIcon } from "~/features/chat/actions";
@@ -151,8 +152,8 @@ export function useRegenerateThreadName() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ threadId, clientKey, useAllMessages }: { threadId: string; clientKey?: string; useAllMessages?: boolean }) =>
-      regenerateThreadName(threadId, clientKey, useAllMessages),
+    mutationFn: ({ threadId, clientKeys, useAllMessages }: { threadId: string; clientKeys?: Partial<Record<ApiKeyProvider, string>>; useAllMessages?: boolean }) =>
+      regenerateThreadName(threadId, clientKeys, useAllMessages),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: THREADS_KEY });
     },
@@ -217,8 +218,8 @@ export function useRegenerateThreadIcon() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ threadId, clientKey }: { threadId: string; clientKey?: string }) =>
-      regenerateThreadIcon(threadId, clientKey),
+    mutationFn: ({ threadId, clientKeys }: { threadId: string; clientKeys?: Partial<Record<ApiKeyProvider, string>> }) =>
+      regenerateThreadIcon(threadId, clientKeys),
     onSuccess: (newIcon, { threadId }) => {
       queryClient.setQueryData<InfiniteData<ThreadsResponse>>(THREADS_KEY, (old) => {
         if (!old)
