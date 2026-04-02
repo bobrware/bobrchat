@@ -108,7 +108,7 @@ function ThreadItemComponent({
 }: ThreadItemProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const openrouterKey = useChatUIStore(state => state.clientKeys.openrouter);
+  const clientKeys = useChatUIStore(state => state.clientKeys);
   const isStreaming = useChatUIStore(state => state.streamingThreadId === id);
   const { data: settings } = useUserSettings();
   const sidebarIconsDisabled = settings?.showSidebarIcons ?? false;
@@ -172,7 +172,7 @@ function ThreadItemComponent({
 
   const handleRegenerateNameClick = async () => {
     try {
-      await regenerateThreadNameMutation.mutateAsync({ threadId: id, clientKey: openrouterKey ?? undefined, useAllMessages: true });
+      await regenerateThreadNameMutation.mutateAsync({ threadId: id, clientKeys: Object.keys(clientKeys).length > 0 ? clientKeys : undefined, useAllMessages: true });
       toast.success("Thread name regenerated");
     }
     catch (error) {
@@ -183,7 +183,7 @@ function ThreadItemComponent({
 
   const handleRegenerateIconClick = async () => {
     try {
-      await regenerateThreadIconMutation.mutateAsync({ threadId: id, clientKey: openrouterKey ?? undefined });
+      await regenerateThreadIconMutation.mutateAsync({ threadId: id, clientKeys: Object.keys(clientKeys).length > 0 ? clientKeys : undefined });
       toast.success("Thread icon regenerated");
     }
     catch (error) {

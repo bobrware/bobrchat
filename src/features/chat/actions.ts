@@ -2,6 +2,7 @@
 
 import type { TagRow } from "~/features/chat/queries";
 import type { ChatUIMessage } from "~/features/chat/types";
+import type { ApiKeyProvider } from "~/lib/api-keys/types";
 import type { ThreadIcon } from "~/lib/db/schema/chat";
 
 import { deleteFile } from "~/features/attachments/lib/storage";
@@ -156,10 +157,11 @@ export async function archiveThread(threadId: string, archive: boolean): Promise
  * Ownership is verified atomically by the renameThreadById query.
  *
  * @param threadId ID of the thread to rename
- * @param clientKey Optional API key provided by the client (from localStorage)
+ * @param clientKeys Optional API keys provided by the client (from localStorage)
+ * @param useAllMessages Optional flag to send all messages for name context, instead of just the initial.
  * @return {Promise<string>} The new title
  */
-export async function regenerateThreadName(threadId: string, clientKey?: string, useAllMessages = false): Promise<string> {
+export async function regenerateThreadName(threadId: string, clientKeys?: Partial<Record<ApiKeyProvider, string>>, useAllMessages = false): Promise<string> {
   const session = await getRequiredSession();
 
   const userId = session.user.id;
@@ -167,7 +169,7 @@ export async function regenerateThreadName(threadId: string, clientKey?: string,
   // Fetch API keys, settings, tier, and messages in parallel
   const { getUserSettingsAndKeys } = await import("~/features/settings/queries");
   const [{ settings, resolvedKeys }, threadMessages, tier] = await Promise.all([
-    getUserSettingsAndKeys(userId, clientKey ? { openrouter: clientKey } : undefined),
+    getUserSettingsAndKeys(userId, clientKeys),
     getMessagesByThreadId(threadId),
     getUserTier(userId),
   ]);
@@ -223,17 +225,17 @@ export async function regenerateThreadName(threadId: string, clientKey?: string,
  * Ownership is verified atomically by the updateThreadIcon query.
  *
  * @param threadId ID of the thread to update
- * @param clientKey Optional API key provided by the client (from localStorage)
+ * @param clientKeys Optional API keys provided by the client (from localStorage)
  * @return {Promise<ThreadIcon>} The new icon
  */
-export async function regenerateThreadIcon(threadId: string, clientKey?: string): Promise<ThreadIcon> {
+export async function regenerateThreadIcon(threadId: string, clientKeys?: Partial<Record<ApiKeyProvider, string>>): Promise<ThreadIcon> {
   const session = await getRequiredSession();
 
   const userId = session.user.id;
 
   const { getUserSettingsAndKeys } = await import("~/features/settings/queries");
   const [{ settings, resolvedKeys }, threadMessages, tier] = await Promise.all([
-    getUserSettingsAndKeys(userId, clientKey ? { openrouter: clientKey } : undefined),
+    getUserSettingsAndKeys(userId, clientKeys),
     getMessagesByThreadId(threadId),
     getUserTier(userId),
   ]);
