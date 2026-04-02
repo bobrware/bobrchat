@@ -36,6 +36,17 @@ export type CategoryBreakdown = {
   utility: number;
 };
 
+export type ToolUsageItem = {
+  cost: number;
+  messageCount: number;
+};
+
+export type ToolUsage = {
+  search: ToolUsageItem;
+  extract: ToolUsageItem;
+  ocr: ToolUsageItem;
+};
+
 export type UsageData = {
   totalCost: number;
   totalMessages: number;
@@ -51,6 +62,7 @@ export type UsageData = {
     outputTokens: number;
     typeBreakdown: UtilityTypeBreakdown[];
   };
+  toolUsage: ToolUsage;
 };
 
 function getStartDate(period: "7d" | "30d" | "90d" | "all"): Date | null {
@@ -76,7 +88,7 @@ export async function getUsageData(period: "7d" | "30d" | "90d" | "all"): Promis
     ? sql`AND ${utilityUsage.createdAt} >= ${startDateStr}`
     : sql``;
 
-  const [totalsResult, dailyResult, modelResult, categoryResult, utilityResult, utilityTypeResult] = await Promise.all([
+  const [totalsResult, dailyResult, modelResult, categoryResult, utilityResult, utilityTypeResult, toolUsageResult] = await Promise.all([
     // 1. Totals
     db.execute<{
       total_cost: string | null;
@@ -192,6 +204,29 @@ export async function getUsageData(period: "7d" | "30d" | "90d" | "all"): Promis
       GROUP BY ${utilityUsage.type}
       ORDER BY cost DESC
     `),
+
+    // 7. Tool usage (search, extract, ocr) with message counts
+    db.execute<{
+      search_cost: string | null;
+      search_messages: string | null;
+      extract_cost: string | null;
+      extract_messages: string | null;
+      ocr_cost: string | null;
+      ocr_messages: string | null;
+    }>(sql`
+      SELECT
+        COALESCE(SUM((${messageMetadata.costBreakdown}->>'search')::numeric), 0) AS search_cost,
+        COUNT(*) FILTER (WHERE (${messageMetadata.costBreakdown}->>'search')::numeric > 0) AS search_messages,
+        COALESCE(SUM((${messageMetadata.costBreakdown}->>'extract')::numeric), 0) AS extract_cost,
+        COUNT(*) FILTER (WHERE (${messageMetadata.costBreakdown}->>'extract')::numeric > 0) AS extract_messages,
+        COALESCE(SUM((${messageMetadata.costBreakdown}->>'ocr')::numeric), 0) AS ocr_cost,
+        COUNT(*) FILTER (WHERE (${messageMetadata.costBreakdown}->>'ocr')::numeric > 0) AS ocr_messages
+      FROM ${messageMetadata}
+      JOIN ${messages} ON ${messages.id} = ${messageMetadata.messageId}
+      JOIN ${threads} ON ${threads.id} = ${messages.threadId}
+      WHERE ${threads.userId} = ${userId}
+      ${dateFilter}
+    `),
   ]);
 
   // Handle different return types from postgres-js (array) vs neon-serverless (QueryResult)
@@ -238,6 +273,15 @@ export async function getUsageData(period: "7d" | "30d" | "90d" | "all"): Promis
     cost: string | null;
   }>(utilityTypeResult);
 
+  const toolUsage = rows<{
+    search_cost: string | null;
+    search_messages: string | null;
+    extract_cost: string | null;
+    extract_messages: string | null;
+    ocr_cost: string | null;
+    ocr_messages: string | null;
+  }>(toolUsageResult)[0];
+
   return {
     totalCost: Number(totals?.total_cost ?? 0),
     totalMessages: Number(totals?.total_messages ?? 0),
@@ -273,6 +317,20 @@ export async function getUsageData(period: "7d" | "30d" | "90d" | "all"): Promis
         calls: Number(row.calls ?? 0),
         cost: Number(row.cost ?? 0),
       })),
+    },
+    toolUsage: {
+      search: {
+        cost: Number(toolUsage?.search_cost ?? 0),
+        messageCount: Number(toolUsage?.search_messages ?? 0),
+      },
+      extract: {
+        cost: Number(toolUsage?.extract_cost ?? 0),
+        messageCount: Number(toolUsage?.extract_messages ?? 0),
+      },
+      ocr: {
+        cost: Number(toolUsage?.ocr_cost ?? 0),
+        messageCount: Number(toolUsage?.ocr_messages ?? 0),
+      },
     },
   };
 }

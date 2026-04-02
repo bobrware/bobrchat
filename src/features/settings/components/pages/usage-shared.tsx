@@ -64,7 +64,7 @@ export function LoadingSkeleton() {
 }
 
 export function useUsagePage() {
-  const [period, setPeriod] = useState<UsagePeriod>("30d");
+  const [period, setPeriod] = useState<UsagePeriod>("7d");
   const { data, isLoading } = useUsageData(period);
   return { period, setPeriod, data, isLoading };
 }
@@ -101,6 +101,10 @@ export function UsagePageLayout({ children, period, setPeriod, data, isLoading }
         {isLoading || !data
           ? <LoadingSkeleton />
           : children}
+        <p className="text-muted-foreground pb-6 pt-4 text-center text-xs">
+          Costs are estimated from listed model pricing and may not reflect actual charges.
+          Verify your spending in your provider&apos;s dashboard.
+        </p>
       </div>
     </div>
   );

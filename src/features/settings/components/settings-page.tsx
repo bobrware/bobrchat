@@ -59,7 +59,7 @@ import { TagsPage } from "./pages/tags-page";
 import { ThemePage } from "./pages/theme-page";
 import { ThreadAutomationPage } from "./pages/thread-automation-page";
 import { ToolsPage } from "./pages/tools-page";
-import { UsageBackgroundPage } from "./pages/usage-background-page";
+import { UsageToolsPage } from "./pages/usage-tools-page";
 import { UsageModelsPage } from "./pages/usage-models-page";
 import { UsageOverviewPage } from "./pages/usage-overview-page";
 import { AttachmentsTab } from "./tabs/attachments-tab";
@@ -71,7 +71,7 @@ type SectionId
   = | "subscription"
     | "usage-overview"
     | "usage-models"
-    | "usage-background"
+    | "usage-tools"
     | "theme"
     | "sidebar"
     | "input"
@@ -132,8 +132,8 @@ const navGroups: NavGroup[] = [
     label: "Usage",
     items: [
       { id: "usage-overview", label: "Overview", icon: BarChart3Icon },
-      { id: "usage-models", label: "Model Usage", icon: CpuIcon },
-      { id: "usage-background", label: "Background", icon: ActivityIcon },
+      { id: "usage-models", label: "Models", icon: CpuIcon },
+      { id: "usage-tools", label: "Tools", icon: ActivityIcon },
       { id: "attachments", label: "Attachments", icon: DatabaseIcon },
     ],
   },
@@ -499,7 +499,7 @@ export function SettingsPage({ initialTab = "theme", isModal = false, onClose }:
           {activeSection === "subscription" && <SubscriptionPage />}
           {activeSection === "usage-overview" && <UsageOverviewPage />}
           {activeSection === "usage-models" && <UsageModelsPage />}
-          {activeSection === "usage-background" && <UsageBackgroundPage />}
+          {activeSection === "usage-tools" && <UsageToolsPage />}
           {activeSection === "theme" && <ThemePage />}
           {activeSection === "sidebar" && <SidebarPage />}
           {activeSection === "input" && <InputPage />}
