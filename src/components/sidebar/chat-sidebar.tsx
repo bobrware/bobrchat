@@ -1,13 +1,20 @@
 "use client";
 
-import { ArchiveIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
+import { ArchiveIcon, EyeOffIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { Session } from "~/features/auth/lib/auth";
 
 import { useKeyboardShortcutsContext } from "~/components/keyboard-shortcuts-provider";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "~/components/ui/context-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +26,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useTags } from "~/features/chat/hooks/use-tags";
 import { useThreads } from "~/features/chat/hooks/use-threads";
+import { useChatUIStore } from "~/features/chat/store";
+import { useSubscription } from "~/features/subscriptions/hooks/use-subscription";
 import { useDebouncedValue } from "~/lib/hooks";
 
 import { Button } from "../ui/button";
@@ -120,6 +129,11 @@ export function ChatSidebar({ session }: ChatSidebarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("recents");
   const { searchInputRef } = useKeyboardShortcutsContext();
   const { data: tags } = useTags();
+  const router = useRouter();
+  const setIncognito = useChatUIStore(state => state.setIncognito);
+  const isIncognito = useChatUIStore(state => state.isIncognito);
+  const { data: subscription } = useSubscription();
+  const isPaid = subscription?.tier === "plus" || subscription?.tier === "beta";
 
   const hasTags = tags && tags.length > 0;
 
@@ -142,17 +156,33 @@ export function ChatSidebar({ session }: ChatSidebarProps) {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="size-7"
-              title="new thread"
-              asChild
-            >
-              <Link href="/">
-                <PlusIcon className="size-4" />
-              </Link>
-            </Button>
+            <ContextMenu>
+              <ContextMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-7"
+                  title="new thread"
+                  asChild
+                >
+                  <Link href="/" onClick={() => setIncognito(false)}>
+                    <PlusIcon className="size-4" />
+                  </Link>
+                </Button>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem
+                  disabled={!isPaid}
+                  onSelect={() => {
+                    setIncognito(true);
+                    router.push("/");
+                  }}
+                >
+                  <EyeOffIcon className="size-4" />
+                  {isPaid ? "New incognito chat" : "New incognito chat (Plus)"}
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
             <SidebarTrigger />
           </div>
         </div>
@@ -225,6 +255,12 @@ export function ChatSidebar({ session }: ChatSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
+          {isIncognito && (
+            <div className="text-muted-foreground mx-2 mb-2 flex items-center gap-2 rounded-md border border-dashed px-2 py-1.5 text-xs">
+              <EyeOffIcon className="size-3.5 shrink-0" />
+              <span>Incognito chat active</span>
+            </div>
+          )}
           <ThreadListContent
             searchQuery={searchQuery}
             showArchived={showArchived}

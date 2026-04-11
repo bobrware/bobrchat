@@ -116,6 +116,7 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
         }),
         // Mark as regeneration if triggered by regenerate function
         isRegeneration: trigger === "regenerate-message",
+        ...(state.isIncognito && { incognito: true }),
         // Merge any additional body properties from the request
         ...requestBody,
       };
@@ -220,6 +221,30 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
       document.title = `${threadTitle} - BobrChat`;
     }
   }, [threadTitle]);
+
+  // Track which thread ID started the incognito session
+  const incognitoThreadIdRef = useRef(
+    useChatUIStore.getState().isIncognito ? id : null,
+  );
+
+  // Reset incognito when navigating to a different thread
+  useEffect(() => {
+    if (incognitoThreadIdRef.current && incognitoThreadIdRef.current !== id) {
+      useChatUIStore.getState().setIncognito(false);
+      incognitoThreadIdRef.current = null;
+    }
+  }, [id]);
+
+  // Reset incognito mode when closing/refreshing the tab
+  useEffect(() => {
+    const resetIncognito = () => {
+      useChatUIStore.getState().setIncognito(false);
+    };
+    window.addEventListener("beforeunload", resetIncognito);
+    return () => {
+      window.removeEventListener("beforeunload", resetIncognito);
+    };
+  }, []);
 
   // Wrapper around sendMessage that patches toggle values onto the user message
   // so the edit UI can read them before page refresh (DB has these values after reload)
