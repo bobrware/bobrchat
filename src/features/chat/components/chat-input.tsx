@@ -60,7 +60,11 @@ export function ChatInput({
           )}
         >
           {isIncognito && (
-            <div className="text-muted-foreground flex items-center gap-2 border-b border-dashed px-3 py-2 text-xs">
+            <div className={`
+              text-muted-foreground flex items-center gap-2 border-b
+              border-dashed px-3 py-2 text-xs
+            `}
+            >
               <EyeOffIcon className="size-3.5 shrink-0" />
               <span>Incognito — this chat won&apos;t be saved</span>
             </div>
