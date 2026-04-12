@@ -26,7 +26,7 @@ export function NewThreadButton({ className, variant = "ghost", ...props }: NewT
   const router = useRouter();
   const setIncognito = useChatUIStore(state => state.setIncognito);
   const { data: subscription } = useSubscription();
-  const isPaid = subscription?.tier === "plus" || subscription?.tier === "beta";
+  const isPlus = subscription?.tier === "plus";
 
   return (
     <ContextMenu>
@@ -57,14 +57,14 @@ export function NewThreadButton({ className, variant = "ghost", ...props }: NewT
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem
-          disabled={!isPaid}
+          disabled={!isPlus}
           onSelect={() => {
             setIncognito(true);
             router.push("/");
           }}
         >
           <EyeOffIcon className="size-4" />
-          {isPaid ? "New incognito chat" : "New incognito chat (Plus)"}
+          {isPlus ? "New incognito chat" : "New incognito chat (Plus)"}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

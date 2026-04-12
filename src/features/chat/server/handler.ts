@@ -44,10 +44,13 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
   const baseModelId = modelId || "google/gemini-3-flash-preview";
 
   const [threadStatus, { settings, resolvedKeys }, tier] = await Promise.all([
-    (threadId && !incognito) ? ensureThreadExistsWithLimitCheck(threadId, userId) : Promise.resolve(null),
+    threadId ? ensureThreadExistsWithLimitCheck(threadId, userId) : Promise.resolve(null),
     getUserSettingsAndKeys(userId, clientKeys),
     getUserTier(userId),
   ]);
+
+  // Incognito is Plus-only; silently downgrade to normal mode for non-Plus users
+  const effectiveIncognito = incognito && tier === "plus";
 
   const parallelKey = searchEnabled ? resolvedKeys.parallel : undefined;
 
@@ -88,7 +91,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     });
   }
 
-  if (threadId && !isRegeneration && !incognito) {
+  if (threadId && !isRegeneration && !effectiveIncognito) {
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === "user") {
       saveMessage(threadId, userId, lastMessage, { searchEnabled, reasoningLevel, modelId: baseModelId })
@@ -120,7 +123,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     handoffProvider,
   );
 
-  if (threadId && !incognito && messages.length === 1 && messages[0].role === "user") {
+  if (threadId && !effectiveIncognito && messages.length === 1 && messages[0].role === "user") {
     const wantsTitle = settings.autoThreadNaming;
     const wantsIcon = settings.autoThreadIcon && !settings.showSidebarIcons;
 
@@ -154,7 +157,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     }
   }
 
-  if (threadId && !incognito && settings.autoTagging && messages.length === 1 && messages[0].role === "user") {
+  if (threadId && !effectiveIncognito && settings.autoTagging && messages.length === 1 && messages[0].role === "user") {
     const tagProvider = resolveToolProvider(settings.toolTagModel, resolvedKeys, tier);
 
     if (tagProvider) {
@@ -197,7 +200,7 @@ export async function handleChatRequest({ req, userId }: { req: Request; userId:
     originalMessages: messages,
     onError,
     onFinish: async ({ responseMessage }) => {
-      if (threadId && !incognito) {
+      if (threadId && !effectiveIncognito) {
         await saveMessage(threadId, userId, responseMessage);
       }
     },
