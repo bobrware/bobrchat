@@ -4,7 +4,7 @@
 
 - `bun run dev` - Start development server.
 - `bun run build` - Build for production (also typechecks).
-- `bun run lint` - Run ESLint; `bun run lint:fix` to auto-fix linting issues.
+- `bun run lint` - Run ESLint; `bun run lint:fix` to auto-fix linting issues (try this first).
 - `db:start/stop/push/generate/migrate/migrate:deploy/studio` - Docker Postgres management and Drizzle commands.
   - Do not run these yourself; inform the user to run them instead.
 
@@ -19,7 +19,7 @@
 - **Rate limiting**: Upstash Redis (`src/lib/rate-limit.ts`).
 - **State**: Zustand for client state, TanStack React Query for server state.
 - **Validation**: Zod v4.
-- **Features**: feature modules live under `src/features/` (chat, auth, attachments, settings, models, landing, subscriptions).
+- **Features**: feature modules live under `src/features/` (chat, auth, attachments, settings, models, landing, subscriptions, usage).
 - **UI**: Radix primitives + shadcn/ui components (`src/components/ui/`).
 - **Shared logic**: reusable queries in `src/lib/queries/`, security utilities in `src/lib/security/`, API key management in `src/lib/api-keys/`.
 
