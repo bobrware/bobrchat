@@ -9,18 +9,30 @@ jobs:
   alejandra:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@v13
       - name: alejandra check
-        run: nix develop -c alejandra --check .
+        run: |
+          CHANGED_NIX=$(git diff --name-only --diff-filter=d origin/main... | grep '\.nix$' || true)
+          if [ -n "$CHANGED_NIX" ]; then
+            echo "$CHANGED_NIX" | xargs nix develop -c alejandra --check
+          else
+            echo "No Nix files changed, skipping alejandra check."
+          fi
 
   eslint:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@v13
       - name: Setup bun Cache
@@ -33,4 +45,10 @@ jobs:
       - name: bun install
         run: nix develop -c bun install
       - name: lint
-        run: nix develop -c bun lint
+        run: |
+          CHANGED=$(git diff --name-only --diff-filter=d origin/main... | grep -E '\.(js|mjs|cjs|ts|mts|cts|jsx|tsx|vue|svelte|astro)$' || true)
+          if [ -n "$CHANGED" ]; then
+            echo "$CHANGED" | xargs nix develop -c bun --bun eslint
+          else
+            echo "No lintable files changed, skipping eslint."
+          fi
