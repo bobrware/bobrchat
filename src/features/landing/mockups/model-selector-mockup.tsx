@@ -16,8 +16,8 @@ const mockModels = [
     capabilities: ["vision", "search"],
   },
   {
-    name: "GLM 5",
-    id: "z-ai/glm-5",
+    name: "GLM 5.1",
+    id: "z-ai/glm-5.1",
     selected: false,
     capabilities: ["reasoning", "search"],
   },
