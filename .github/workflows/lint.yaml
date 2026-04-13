@@ -42,13 +42,20 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('bun.lock') }}
           restore-keys: |
             node-modules-${{ runner.os }}-
-      - name: bun install
-        run: nix develop -c bun install
-      - name: lint
+      - name: Detect changed lintable files
+        id: changed
         run: |
           CHANGED=$(git diff --name-only --diff-filter=d origin/main... | grep -E '\.(js|mjs|cjs|ts|mts|cts|jsx|tsx|vue|svelte|astro)$' || true)
           if [ -n "$CHANGED" ]; then
-            echo "$CHANGED" | xargs nix develop -c bun --bun eslint
+            echo "lintable=true" >> "$GITHUB_OUTPUT"
           else
-            echo "No lintable files changed, skipping eslint."
+            echo "lintable=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: bun install
+        run: nix develop -c bun install
+        if: steps.changed.outputs.lintable == 'true'
+      - name: lint
+        run: |
+          CHANGED=$(git diff --name-only --diff-filter=d origin/main... | grep -E '\.(js|mjs|cjs|ts|mts|cts|jsx|tsx|vue|svelte|astro)$' || true)
+          echo "$CHANGED" | xargs nix develop -c bun --bun eslint
+        if: steps.changed.outputs.lintable == 'true'
