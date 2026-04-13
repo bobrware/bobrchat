@@ -8,7 +8,7 @@ export const STARTER_FAVORITE_MODELS = [
   "google/gemini-3-flash-preview",
   "moonshotai/kimi-k2.5",
   "anthropic/claude-sonnet-4.6",
-  "z-ai/glm-5",
+  "z-ai/glm-5.1",
   "anthropic/claude-opus-4.6",
 ];
 
