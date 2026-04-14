@@ -3,7 +3,7 @@ import * as z from "zod";
 export const handoffInputSchema = z.object({
   objective: z
     .string()
-    .max(500)
+    .max(2000)
     .describe(
       "What the new thread should focus on. Describe the goal or topic for the handed-off thread.",
     ),
