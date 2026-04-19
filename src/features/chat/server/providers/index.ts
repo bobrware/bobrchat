@@ -19,6 +19,7 @@ import { TOOL_MODEL_OPTIONS, UTILITY_MODELS } from "./types";
 const DIRECT_PROVIDER_MAP: Record<string, { keyProvider: ApiKeyProvider; providerType: ProviderType }> = {
   openai: { keyProvider: "openai", providerType: "openai" },
   anthropic: { keyProvider: "anthropic", providerType: "anthropic" },
+  synthetic: { keyProvider: "synthetic", providerType: "synthetic" },
 };
 
 /**
@@ -114,6 +115,15 @@ export function resolveUtilityProvider(
     };
   }
 
+  const syntheticKey = resolvedKeys.synthetic;
+  if (syntheticKey) {
+    return {
+      providerType: "synthetic",
+      providerModelId: UTILITY_MODELS.synthetic,
+      apiKey: syntheticKey,
+    };
+  }
+
   if (tier && PAID_TIERS.includes(tier) && serverEnv.TOOLING_OPENROUTER_API_KEY) {
     return {
       providerType: "openrouter",
@@ -154,6 +164,11 @@ export function resolveToolProvider(
     return { providerType: "anthropic", providerModelId: option.anthropicModelId, apiKey: resolvedKeys.anthropic };
   }
 
+  // Try direct Synthetic
+  if (option.syntheticModelId && resolvedKeys.synthetic) {
+    return { providerType: "synthetic", providerModelId: option.syntheticModelId, apiKey: resolvedKeys.synthetic };
+  }
+
   // Fall back to OpenRouter
   if (resolvedKeys.openrouter && option.providers.includes("openrouter")) {
     return { providerType: "openrouter", providerModelId: option.openrouterModelId, apiKey: resolvedKeys.openrouter };
@@ -171,5 +186,6 @@ export function resolveToolProvider(
 export { buildAnthropicProviderOptions, createAnthropicProvider } from "./anthropic";
 export { buildOpenAIProviderOptions, createOpenAIProvider } from "./openai";
 export { buildOpenRouterProviderOptions, createOpenRouterProvider } from "./openrouter";
+export { buildSyntheticProviderOptions, createSyntheticProvider } from "./synthetic";
 export { TOOL_MODEL_OPTIONS, UTILITY_MODELS } from "./types";
 export type { ProviderType, ResolvedProvider, ToolModelOption } from "./types";

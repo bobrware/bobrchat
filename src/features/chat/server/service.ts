@@ -13,9 +13,11 @@ import {
   buildAnthropicProviderOptions,
   buildOpenAIProviderOptions,
   buildOpenRouterProviderOptions,
+  buildSyntheticProviderOptions,
   createAnthropicProvider,
   createOpenAIProvider,
   createOpenRouterProvider,
+  createSyntheticProvider,
 } from "./providers";
 import { createStreamHandlers, processStreamChunk } from "./stream";
 import { createHandoffTool, createSearchTools } from "./tools";
@@ -89,13 +91,15 @@ export async function streamChatResponse(
     ? createOpenAIProvider(resolvedProvider.apiKey)
     : resolvedProvider.providerType === "anthropic"
       ? createAnthropicProvider(resolvedProvider.apiKey)
-      : createOpenRouterProvider(resolvedProvider.apiKey);
+      : resolvedProvider.providerType === "synthetic"
+        ? createSyntheticProvider(resolvedProvider.apiKey)
+        : createOpenRouterProvider(resolvedProvider.apiKey);
 
   const hasPdf = hasPdfAttachment(messages);
 
   // Direct providers (OpenAI, Anthropic) handle PDFs natively — they don't
   // need OpenRouter's file-parser plugin or OCR pipeline.
-  const isDirectProvider = resolvedProvider.providerType === "openai" || resolvedProvider.providerType === "anthropic";
+  const isDirectProvider = resolvedProvider.providerType === "openai" || resolvedProvider.providerType === "anthropic" || resolvedProvider.providerType === "synthetic";
   const effectivePdfConfig: PdfEngineConfig | undefined = isDirectProvider
     ? { useOcrForPdfs: false, supportsNativePdf: true }
     : pdfEngineConfig;
@@ -116,7 +120,7 @@ export async function streamChatResponse(
   // in subsequent requests through proxies like OpenRouter.
   // OpenAI's Responses API requires reasoning items to be sent back with conversation history,
   // so we only strip them for non-OpenAI providers.
-  const messagesWithoutReasoning = resolvedProvider.providerType === "openai"
+  const messagesWithoutReasoning = resolvedProvider.providerType === "openai" || resolvedProvider.providerType === "synthetic"
     ? processedMessages
     : processedMessages.map((msg) => {
         if (msg.role !== "assistant" || !msg.parts)
@@ -161,11 +165,13 @@ export async function streamChatResponse(
     ? buildOpenAIProviderOptions({ reasoningLevel })
     : resolvedProvider.providerType === "anthropic"
       ? buildAnthropicProviderOptions({ reasoningLevel })
-      : buildOpenRouterProviderOptions({ hasPdf, pdfEngineConfig: effectivePdfConfig, reasoningLevel });
+      : resolvedProvider.providerType === "synthetic"
+        ? buildSyntheticProviderOptions({ reasoningLevel })
+        : buildOpenRouterProviderOptions({ hasPdf, pdfEngineConfig: effectivePdfConfig, reasoningLevel });
 
   // Strip reasoning content from model messages to prevent stale thinking block signatures
   // from being replayed. Used both for initial message history and between multi-step executions.
-  const stripReasoningFromModelMessages = resolvedProvider.providerType === "openai"
+  const stripReasoningFromModelMessages = resolvedProvider.providerType === "openai" || resolvedProvider.providerType === "synthetic"
     ? undefined
     : (msgs: ModelMessage[]): ModelMessage[] => msgs.map((msg) => {
         const currentMessageProviderOptions = (msg as { providerOptions?: unknown }).providerOptions;
