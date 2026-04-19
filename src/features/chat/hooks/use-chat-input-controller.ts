@@ -40,11 +40,13 @@ export function useChatInputController({
     = useApiKeyStatus("openai");
   const { hasKey: hasAnthropicKey, isLoading: isAnthropicLoading }
     = useApiKeyStatus("anthropic");
+  const { hasKey: hasSyntheticKey, isLoading: isSyntheticLoading }
+    = useApiKeyStatus("synthetic");
   const { hasKey: hasParallelApiKey, isLoading: isParallelApiLoading }
     = useApiKeyStatus("parallel");
 
-  const hasAnyChatKey = (hasOpenRouterKey || hasOpenAIKey || hasAnthropicKey) ?? false;
-  const isAnyChatKeyLoading = isOpenRouterLoading || isOpenAILoading || isAnthropicLoading;
+  const hasAnyChatKey = (hasOpenRouterKey || hasOpenAIKey || hasAnthropicKey || hasSyntheticKey) ?? false;
+  const isAnyChatKeyLoading = isOpenRouterLoading || isOpenAILoading || isAnthropicLoading || isSyntheticLoading;
 
   const { models: favoriteModels, isLoading: isModelsLoading, unavailableModelIds }
     = useFavoriteModels();
@@ -98,8 +100,10 @@ export function useChatInputController({
       return true;
     if (prefix === "anthropic" && hasAnthropicKey)
       return true;
+    if (prefix === "synthetic" && hasSyntheticKey)
+      return true;
     return false;
-  }, [selectedModelId, hasOpenAIKey, hasAnthropicKey]);
+  }, [selectedModelId, hasOpenAIKey, hasAnthropicKey, hasSyntheticKey]);
 
   const effectiveSupportsNativePdf = capabilities.supportsNativePdf || willUseDirectProvider;
 

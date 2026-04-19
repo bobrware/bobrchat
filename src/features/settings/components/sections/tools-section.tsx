@@ -111,12 +111,16 @@ export function ToolsSection({ settings }: ToolsSectionProps) {
     if (settings.configuredApiKeys?.anthropic || clientKeys.anthropic) {
       providers.add("anthropic");
     }
+    if (settings.configuredApiKeys?.synthetic || clientKeys.synthetic) {
+      providers.add("synthetic");
+    }
 
     // If no keys configured at all, show everything so the user can see options
     if (providers.size === 0) {
       providers.add("openrouter");
       providers.add("openai");
       providers.add("anthropic");
+      providers.add("synthetic");
     }
 
     return providers;
