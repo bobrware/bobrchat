@@ -420,6 +420,128 @@ export async function syncAnthropicProviderAvailability(): Promise<{
 }
 
 /**
+ * Sync direct provider availability for Synthetic models.
+ * Fetches the Synthetic model list and cross-references with our models table
+ * to determine which models can be routed directly through Synthetic.
+ *
+ * Synthetic model IDs use the `hf:` prefix (e.g. "hf:zai-org/GLM-4.7").
+ * We match them against OpenRouter models by comparing the HuggingFace
+ * org/model portion against known provider prefixes in our DB.
+ */
+export async function syncSyntheticProviderAvailability(): Promise<{
+  success: boolean;
+  upserted: number;
+  removed: number;
+  durationMs: number;
+  skipped?: boolean;
+  error?: string;
+}> {
+  const startTime = Date.now();
+
+  const syntheticKey = serverEnv.SYNTHETIC_API_KEY;
+  if (!syntheticKey) {
+    return {
+      success: true,
+      upserted: 0,
+      removed: 0,
+      durationMs: Date.now() - startTime,
+      skipped: true,
+    };
+  }
+
+  try {
+    const response = await fetch("https://api.synthetic.new/v1/models", {
+      headers: { Authorization: `Bearer ${syntheticKey}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Synthetic API returned ${response.status}: ${await response.text()}`);
+    }
+
+    const data = await response.json() as { data: { id: string }[] };
+    const syntheticModelIds = new Set(data.data.map(m => m.id));
+
+    // Get all models from our DB and try to match against Synthetic's catalogue.
+    // Synthetic uses HuggingFace-style IDs like "hf:org/Model-Name".
+    // We need to check which of our OpenRouter models have a corresponding
+    // Synthetic model available.
+    const allModels = await db
+      .select({ modelId: models.modelId })
+      .from(models);
+
+    let upserted = 0;
+    let removed = 0;
+    const now = new Date();
+
+    for (const { modelId } of allModels) {
+      // Try to find a matching Synthetic model for this OpenRouter model.
+      // OpenRouter IDs look like "zai-org/glm-4.7" while Synthetic uses "hf:zai-org/GLM-4.7".
+      const strippedId = modelId.replace(/^[^/]+\//, "");
+
+      if (isOpenRouterOnlyVariant(strippedId)) {
+        continue;
+      }
+
+      // Check if any Synthetic model ID contains this model's slug (case-insensitive)
+      const matchedSyntheticId = [...syntheticModelIds].find((synId) => {
+        const synSlug = synId.replace(/^hf:/, "");
+        return synSlug.toLowerCase() === modelId.toLowerCase()
+          || synSlug.toLowerCase() === strippedId.toLowerCase();
+      });
+
+      if (matchedSyntheticId) {
+        await db
+          .insert(modelProviderAvailability)
+          .values({
+            modelId,
+            provider: "synthetic",
+            providerModelId: matchedSyntheticId,
+            lastVerifiedAt: now,
+          })
+          .onConflictDoUpdate({
+            target: [modelProviderAvailability.modelId, modelProviderAvailability.provider],
+            set: {
+              providerModelId: matchedSyntheticId,
+              lastVerifiedAt: now,
+            },
+          });
+        upserted++;
+      }
+      else {
+        await db
+          .delete(modelProviderAvailability)
+          .where(
+            and(
+              eq(modelProviderAvailability.modelId, modelId),
+              eq(modelProviderAvailability.provider, "synthetic"),
+            ),
+          );
+        removed++;
+      }
+    }
+
+    return {
+      success: true,
+      upserted,
+      removed,
+      durationMs: Date.now() - startTime,
+    };
+  }
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to sync Synthetic provider availability:", error);
+
+    return {
+      success: false,
+      upserted: 0,
+      removed: 0,
+      durationMs: Date.now() - startTime,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
  * Get the last successful sync time
  */
 export async function getLastSyncTime(): Promise<Date | null> {
