@@ -1,7 +1,7 @@
 /**
  * Supported API key providers.
  */
-export type ApiKeyProvider = "openrouter" | "openai" | "anthropic" | "parallel";
+export type ApiKeyProvider = "openrouter" | "openai" | "anthropic" | "synthetic" | "parallel";
 
 /**
  * localStorage keys for client-side API key storage.
@@ -11,5 +11,6 @@ export const CLIENT_STORAGE_KEYS: Record<ApiKeyProvider, string> = {
   openrouter: "openrouter_api_key",
   openai: "openai_api_key",
   anthropic: "anthropic_api_key",
+  synthetic: "synthetic_api_key",
   parallel: "parallel_api_key",
 };
