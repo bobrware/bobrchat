@@ -38,11 +38,12 @@ export function ModelsTab() {
   const { hasKey: hasOpenRouterKey, isLoading: isOpenRouterKeyLoading } = useApiKeyStatus("openrouter");
   const { hasKey: hasOpenAIKey, isLoading: isOpenAIKeyLoading } = useApiKeyStatus("openai");
   const { hasKey: hasAnthropicKey, isLoading: isAnthropicKeyLoading } = useApiKeyStatus("anthropic");
-  const hasAnyKey = hasOpenRouterKey || hasOpenAIKey || hasAnthropicKey;
-  const isKeyLoading = isOpenRouterKeyLoading || isOpenAIKeyLoading || isAnthropicKeyLoading;
+  const { hasKey: hasSyntheticKey, isLoading: isSyntheticKeyLoading } = useApiKeyStatus("synthetic");
+  const hasAnyKey = hasOpenRouterKey || hasOpenAIKey || hasAnthropicKey || hasSyntheticKey;
+  const isKeyLoading = isOpenRouterKeyLoading || isOpenAIKeyLoading || isAnthropicKeyLoading || isSyntheticKeyLoading;
 
-  const directProviderFilter = !hasOpenRouterKey && (hasOpenAIKey || hasAnthropicKey)
-    ? [hasOpenAIKey && "openai", hasAnthropicKey && "anthropic"].filter(Boolean) as string[]
+  const directProviderFilter = !hasOpenRouterKey && (hasOpenAIKey || hasAnthropicKey || hasSyntheticKey)
+    ? [hasOpenAIKey && "openai", hasAnthropicKey && "anthropic", hasSyntheticKey && "synthetic"].filter(Boolean) as string[]
     : undefined;
 
   const [searchQuery, setSearchQuery] = useState("");

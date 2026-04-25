@@ -223,7 +223,7 @@ function ApiWarningBadge() {
     >
       <AlertCircle className="text-warning mt-0.5 size-5 shrink-0" />
       <div className="text-warning-foreground text-sm">
-        No API key configured. Set up an API key (OpenRouter, OpenAI, or Anthropic) in
+        No API key configured. Set up an API key (OpenRouter, OpenAI, Anthropic, or Synthetic) in
         <Link
           href="/settings?section=integrations"
           className={`

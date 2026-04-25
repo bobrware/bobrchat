@@ -14,6 +14,7 @@ export async function prefetchUserData(userId: string) {
   const hasOpenRouterPromise = hasEncryptedKey(userId, "openrouter");
   const hasOpenAIPromise = hasEncryptedKey(userId, "openai");
   const hasAnthropicPromise = hasEncryptedKey(userId, "anthropic");
+  const hasSyntheticPromise = hasEncryptedKey(userId, "synthetic");
   const hasParallelPromise = hasEncryptedKey(userId, "parallel");
   const threadsPromise = queryClient.prefetchInfiniteQuery({
     queryKey: THREADS_KEY,
@@ -30,11 +31,12 @@ export async function prefetchUserData(userId: string) {
   });
 
   // Wait for settings + API key status (needed to determine favorite IDs)
-  const [settings, hasOpenRouter, hasOpenAI, hasAnthropic, hasParallel] = await Promise.all([
+  const [settings, hasOpenRouter, hasOpenAI, hasAnthropic, hasSynthetic, hasParallel] = await Promise.all([
     settingsPromise,
     hasOpenRouterPromise,
     hasOpenAIPromise,
     hasAnthropicPromise,
+    hasSyntheticPromise,
     hasParallelPromise,
   ]);
 
@@ -52,6 +54,7 @@ export async function prefetchUserData(userId: string) {
       openrouter: hasOpenRouter,
       openai: hasOpenAI,
       anthropic: hasAnthropic,
+      synthetic: hasSynthetic,
       parallel: hasParallel,
     },
   });

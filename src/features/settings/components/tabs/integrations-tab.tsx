@@ -33,6 +33,14 @@ const modelProviders: ApiKeyConfig[] = [
     logo: "/logos/providers/anthropic.svg",
     link: { href: "https://console.anthropic.com/settings/keys", label: "console.anthropic.com/settings/keys" },
   },
+  {
+    provider: "synthetic",
+    label: "Synthetic",
+    description: "Use your Synthetic API key for direct access to open-source models hosted on Synthetic's infrastructure.",
+    placeholder: "sk-...",
+    logo: "/logos/providers/synthetic.svg",
+    link: { href: "https://synthetic.new/settings", label: "synthetic.new/settings" },
+  },
 ];
 
 const searchProviders: ApiKeyConfig[] = [
