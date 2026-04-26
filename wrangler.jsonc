@@ -35,6 +35,13 @@
       "binding": "R2_BUCKET",
       "bucket_name": "bobrchat"
     }
+  ],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "9a8e70ca7e2648f59ddda635f72ee6a0",
+      "localConnectionString": "postgresql://postgres:postgres@localhost:5432/ai_frontend"
+    }
   ]
   // Uncomment to enable R2-based ISR/SSG caching:
   // To use, add another entry to the r2_buckets array above:

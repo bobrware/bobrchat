@@ -29,7 +29,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.2",
     "@matthew-hre/env": "^0.3.4",
-    "@neondatabase/serverless": "^0.10.4",
     "@opennextjs/cloudflare": "^1.19.4",
     "@openrouter/ai-sdk-provider": "^1.2.8",
     "@polar-sh/sdk": "^0.42.5",

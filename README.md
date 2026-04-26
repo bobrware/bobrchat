@@ -61,16 +61,19 @@ no lock-in.
 | Layer         | Technology                                                                            |
 | :------------ | :------------------------------------------------------------------------------------ |
 | **Framework** | [Next.js 16](https://nextjs.org) (App Router), React 19                               |
+| **Hosting**   | [Cloudflare Workers](https://workers.cloudflare.com) via [OpenNext](https://opennext.js.org/cloudflare) |
 | **Styling**   | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), Radix |
 | **Database**  | PostgreSQL via [Drizzle ORM](https://orm.drizzle.team)                                |
 | **Auth**      | [WorkOS AuthKit](https://workos.com/docs/auth-kit)                                    |
 | **AI**        | [Vercel AI SDK](https://sdk.vercel.ai) + [OpenRouter](https://openrouter.ai)          |
+| **Storage**   | [Cloudflare R2](https://developers.cloudflare.com/r2/)                                |
 | **OG Images** | Cloudflare Workers ([`og/`](og/))                                                     |
 
 ## Getting Started
 
 > [!NOTE]
 > This project uses [Nix](https://nixos.org) for development tooling and [Bun](https://bun.sh) as the JavaScript runtime.
+> The app is deployed to [Cloudflare Workers](https://workers.cloudflare.com) via [OpenNext](https://opennext.js.org/cloudflare).
 
 ```bash
 # Enter the Nix dev shell (provides the full toolchain)
@@ -85,11 +88,24 @@ docker-compose up -d
 # Push the database schema
 bun db:push
 
+# Copy .env.example to .env and fill in the required values
+cp .env.example .env
+
 # Start the dev server
 bun run dev
 ```
 
-Copy `.env.example` to `.env` and fill in the required values before running.
+### Preview & Deploy (Cloudflare)
+
+```bash
+# Build and preview locally with Wrangler
+bun run preview
+
+# Build and deploy to Cloudflare Workers
+bun run deploy
+```
+
+Cloudflare-specific environment variables for local preview go in `.dev.vars` (see [Wrangler docs](https://developers.cloudflare.com/workers/configuration/secrets/)).
 
 ## Project Structure
 

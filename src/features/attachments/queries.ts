@@ -51,9 +51,7 @@ export async function getThreadStats(params: {
       ) as attachment_size
   `);
 
-  // Handle different return types from postgres-js (array) vs neon-serverless (QueryResult)
-  const rows = "rows" in result ? result.rows : (result as unknown as StatsRow[]);
-  const row = rows[0];
+  const row = result[0];
   return {
     messageCount: row?.message_count ?? 0,
     attachmentCount: row?.attachment_count ?? 0,
