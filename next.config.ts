@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 import { serverEnv } from "~/lib/env";
 
 const r2PublicUrl = process.env.R2_PUBLIC_URL || "";
+const r2Hostname = r2PublicUrl.replace(/^https?:\/\//, "");
 
 const nextConfig: NextConfig = {
   logging: {
@@ -12,20 +13,29 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    remotePatterns: [
-      {
-        hostname: r2PublicUrl.replace(/^https?:\/\//, "") || "",
-      },
-    ],
+    remotePatterns: r2Hostname
+      ? [{ hostname: r2Hostname }]
+      : [],
   },
-  serverExternalPackages: [
-    "@aws-sdk/client-s3",
-    "@polar-sh/sdk",
-    "drizzle-orm",
-    "postgres",
-    "pdf-lib",
-    "file-type",
-    "resend",
+  // serverExternalPackages are not compatible with Cloudflare Workers
+  // since all code must be bundled into the worker. Kept commented for
+  // reference if reverting to Vercel deployment.
+  // serverExternalPackages: [
+  //   "@aws-sdk/client-s3",
+  //   "@polar-sh/sdk",
+  //   "drizzle-orm",
+  //   "postgres",
+  //   "pdf-lib",
+  //   "file-type",
+  //   "resend",
+  // ],
+  redirects: async () => [
+    {
+      source: "/:path*",
+      has: [{ type: "host", value: "bobrchat.com" }],
+      destination: "https://www.bobrchat.com/:path*",
+      permanent: true,
+    },
   ],
   headers: async () => [
     {
@@ -54,3 +64,9 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+if (process.env.NODE_ENV === "development") {
+  import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) =>
+    initOpenNextCloudflareForDev(),
+  );
+}
