@@ -29,6 +29,14 @@ const nextConfig: NextConfig = {
   //   "file-type",
   //   "resend",
   // ],
+  redirects: async () => [
+    {
+      source: "/:path*",
+      has: [{ type: "host", value: "bobrchat.com" }],
+      destination: "https://www.bobrchat.com/:path*",
+      permanent: true,
+    },
+  ],
   headers: async () => [
     {
       source: "/:path*",
