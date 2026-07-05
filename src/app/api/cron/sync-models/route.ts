@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { syncAnthropicProviderAvailability, syncDirectProviderAvailability, syncModelsFromOpenRouter } from "~/features/models/server/sync-models";
+import { syncAnthropicProviderAvailability, syncDirectProviderAvailability, syncModelsFromOpenRouter, syncSyntheticProviderAvailability } from "~/features/models/server/sync-models";
 import { cronRateLimit, rateLimitResponse } from "~/lib/rate-limit";
 
 export async function GET() {
@@ -20,6 +20,7 @@ export async function GET() {
 
   const providerResult = await syncDirectProviderAvailability();
   const anthropicResult = await syncAnthropicProviderAvailability();
+  const syntheticResult = await syncSyntheticProviderAvailability();
 
   return NextResponse.json({
     success: true,
@@ -40,6 +41,15 @@ export async function GET() {
       durationMs: anthropicResult.durationMs,
       ...(anthropicResult.skipped && { skipped: true }),
       ...(anthropicResult.error && { error: anthropicResult.error }),
+    },
+    syntheticProviderSync: {
+      success: syntheticResult.success,
+      upserted: syntheticResult.upserted,
+      removed: syntheticResult.removed,
+      inserted: syntheticResult.inserted,
+      durationMs: syntheticResult.durationMs,
+      ...(syntheticResult.skipped && { skipped: true }),
+      ...(syntheticResult.error && { error: syntheticResult.error }),
     },
   });
 }

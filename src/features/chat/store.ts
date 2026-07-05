@@ -103,7 +103,7 @@ export const useChatUIStore = create<ChatUIStore>()(
       clientKeys: {},
       loadApiKeysFromStorage: () => {
         const keys: Partial<Record<ApiKeyProvider, string>> = {};
-        for (const provider of ["openrouter", "openai", "anthropic", "parallel"] as const) {
+        for (const provider of ["openrouter", "openai", "anthropic", "synthetic", "parallel"] as const) {
           const key = getClientKey(provider);
           if (key)
             keys[provider] = key;

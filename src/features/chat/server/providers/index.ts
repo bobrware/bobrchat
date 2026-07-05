@@ -19,6 +19,7 @@ import { TOOL_MODEL_OPTIONS, UTILITY_MODELS } from "./types";
 const DIRECT_PROVIDER_MAP: Record<string, { keyProvider: ApiKeyProvider; providerType: ProviderType }> = {
   openai: { keyProvider: "openai", providerType: "openai" },
   anthropic: { keyProvider: "anthropic", providerType: "anthropic" },
+  synthetic: { keyProvider: "synthetic", providerType: "synthetic" },
 };
 
 /**
@@ -58,6 +59,37 @@ export async function resolveProvider(
           providerModelId: availability[0].providerModelId,
           apiKey: directKey,
         };
+      }
+    }
+  }
+
+  // For models not matched by prefix (e.g. Synthetic-only "hf:org/Model"),
+  // check provider availability directly.
+  if (!directMapping) {
+    const availability = await db
+      .select({
+        provider: modelProviderAvailability.provider,
+        providerModelId: modelProviderAvailability.providerModelId,
+      })
+      .from(modelProviderAvailability)
+      .where(eq(modelProviderAvailability.modelId, modelId))
+      .limit(1);
+
+    if (availability.length > 0) {
+      const entry = availability[0];
+      const mapping = Object.values(DIRECT_PROVIDER_MAP).find(
+        m => m.providerType === entry.provider,
+      );
+
+      if (mapping) {
+        const key = resolvedKeys[mapping.keyProvider];
+        if (key) {
+          return {
+            providerType: mapping.providerType,
+            providerModelId: entry.providerModelId,
+            apiKey: key,
+          };
+        }
       }
     }
   }
@@ -114,6 +146,15 @@ export function resolveUtilityProvider(
     };
   }
 
+  const syntheticKey = resolvedKeys.synthetic;
+  if (syntheticKey) {
+    return {
+      providerType: "synthetic",
+      providerModelId: UTILITY_MODELS.synthetic,
+      apiKey: syntheticKey,
+    };
+  }
+
   if (tier && PAID_TIERS.includes(tier) && serverEnv.TOOLING_OPENROUTER_API_KEY) {
     return {
       providerType: "openrouter",
@@ -154,6 +195,11 @@ export function resolveToolProvider(
     return { providerType: "anthropic", providerModelId: option.anthropicModelId, apiKey: resolvedKeys.anthropic };
   }
 
+  // Try direct Synthetic
+  if (option.syntheticModelId && resolvedKeys.synthetic) {
+    return { providerType: "synthetic", providerModelId: option.syntheticModelId, apiKey: resolvedKeys.synthetic };
+  }
+
   // Fall back to OpenRouter
   if (resolvedKeys.openrouter && option.providers.includes("openrouter")) {
     return { providerType: "openrouter", providerModelId: option.openrouterModelId, apiKey: resolvedKeys.openrouter };
@@ -171,5 +217,6 @@ export function resolveToolProvider(
 export { buildAnthropicProviderOptions, createAnthropicProvider } from "./anthropic";
 export { buildOpenAIProviderOptions, createOpenAIProvider } from "./openai";
 export { buildOpenRouterProviderOptions, createOpenRouterProvider } from "./openrouter";
+export { buildSyntheticProviderOptions, createSyntheticProvider } from "./synthetic";
 export { TOOL_MODEL_OPTIONS, UTILITY_MODELS } from "./types";
 export type { ProviderType, ResolvedProvider, ToolModelOption } from "./types";

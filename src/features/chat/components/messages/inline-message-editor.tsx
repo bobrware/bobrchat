@@ -70,6 +70,7 @@ export function InlineMessageEditor({
   const { hasKey: hasParallelApiKey, isLoading: isParallelApiLoading } = useApiKeyStatus("parallel");
   const { hasKey: hasOpenAIKey } = useApiKeyStatus("openai");
   const { hasKey: hasAnthropicKey } = useApiKeyStatus("anthropic");
+  const { hasKey: hasSyntheticKey } = useApiKeyStatus("synthetic");
 
   const { models: favoriteModels, unavailableModelIds } = useFavoriteModels();
   const [selectedModelId, setSelectedModelId] = React.useState<string | null>(
@@ -99,8 +100,10 @@ export function InlineMessageEditor({
       return true;
     if (prefix === "anthropic" && hasAnthropicKey)
       return true;
+    if (prefix === "synthetic" && hasSyntheticKey)
+      return true;
     return false;
-  }, [selectedModelId, hasOpenAIKey, hasAnthropicKey]);
+  }, [selectedModelId, hasOpenAIKey, hasAnthropicKey, hasSyntheticKey]);
   const effectiveSupportsNativePdf = capabilities.supportsNativePdf || willUseDirectProvider;
   const canUpload = canUploadFiles(capabilities);
   const acceptedTypes = getAcceptedFileTypes(capabilities);

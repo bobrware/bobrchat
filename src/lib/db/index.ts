@@ -1,3 +1,4 @@
+/* eslint-disable node/no-process-env */
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
