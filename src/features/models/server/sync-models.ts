@@ -92,6 +92,10 @@ export async function syncModelsFromOpenRouter(): Promise<{
     const existingModels = await db.select({ modelId: models.modelId, provider: models.provider }).from(models);
     for (const existing of existingModels) {
       if (!currentModelIds.has(existing.modelId) && existing.provider !== "synthetic") {
+        await db
+          .delete(modelProviderAvailability)
+          .where(eq(modelProviderAvailability.modelId, existing.modelId));
+
         await db.delete(models).where(eq(models.modelId, existing.modelId));
       }
     }

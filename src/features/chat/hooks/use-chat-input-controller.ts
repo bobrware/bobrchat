@@ -60,6 +60,8 @@ export function useChatInputController({
     setSelectedModelId,
     searchEnabled,
     setSearchEnabled,
+    searchMode,
+    setSearchMode,
     reasoningLevel,
     setReasoningLevel,
   } = useChatUIStore();
@@ -266,6 +268,8 @@ export function useChatInputController({
     features: {
       searchEnabled,
       toggleSearch,
+      searchMode,
+      setSearchMode,
       reasoningLevel,
       setReasoningLevel,
     },

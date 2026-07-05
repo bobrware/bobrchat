@@ -229,58 +229,18 @@ export async function getUsageData(period: "7d" | "30d" | "90d" | "all"): Promis
     `),
   ]);
 
-  // Handle different return types from postgres-js (array) vs neon-serverless (QueryResult)
-  function rows<T>(result: unknown): T[] {
-    const r = result as Record<string, unknown>;
-    return ("rows" in r ? r.rows : result) as T[];
-  }
+  const totals = (totalsResult as { total_cost: string | null; total_messages: string | null; total_input_tokens: string | null; total_output_tokens: string | null }[])[0];
 
-  const totals = rows<{
-    total_cost: string | null;
-    total_messages: string | null;
-    total_input_tokens: string | null;
-    total_output_tokens: string | null;
-  }>(totalsResult)[0];
+  const daily = dailyResult as { date: string; cost: string | null }[];
+  const models = modelResult as { model: string | null; provider: string | null; message_count: string | null; input_tokens: string | null; output_tokens: string | null; cost: string | null }[];
 
-  const daily = rows<{ date: string; cost: string | null }>(dailyResult);
-  const models = rows<{
-    model: string | null;
-    provider: string | null;
-    message_count: string | null;
-    input_tokens: string | null;
-    output_tokens: string | null;
-    cost: string | null;
-  }>(modelResult);
+  const category = (categoryResult as { prompt: string | null; completion: string | null; search: string | null; extract: string | null; ocr: string | null }[])[0];
 
-  const category = rows<{
-    prompt: string | null;
-    completion: string | null;
-    search: string | null;
-    extract: string | null;
-    ocr: string | null;
-  }>(categoryResult)[0];
+  const utility = (utilityResult as { total_cost: string | null; total_calls: string | null; input_tokens: string | null; output_tokens: string | null }[])[0];
 
-  const utility = rows<{
-    total_cost: string | null;
-    total_calls: string | null;
-    input_tokens: string | null;
-    output_tokens: string | null;
-  }>(utilityResult)[0];
+  const utilityTypes = utilityTypeResult as { type: string | null; calls: string | null; cost: string | null }[];
 
-  const utilityTypes = rows<{
-    type: string | null;
-    calls: string | null;
-    cost: string | null;
-  }>(utilityTypeResult);
-
-  const toolUsage = rows<{
-    search_cost: string | null;
-    search_messages: string | null;
-    extract_cost: string | null;
-    extract_messages: string | null;
-    ocr_cost: string | null;
-    ocr_messages: string | null;
-  }>(toolUsageResult)[0];
+  const toolUsage = (toolUsageResult as { search_cost: string | null; search_messages: string | null; extract_cost: string | null; extract_messages: string | null; ocr_cost: string | null; ocr_messages: string | null }[])[0];
 
   return {
     totalCost: Number(totals?.total_cost ?? 0),

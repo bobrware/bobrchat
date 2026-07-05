@@ -81,6 +81,7 @@ export async function streamChatResponse(
   supportsTools?: boolean,
   handoffEnabled?: boolean,
   utilityProvider?: ResolvedProvider,
+  searchMode?: "basic" | "advanced",
 ) {
   const startTime = Date.now();
   let firstTokenTime: number | null = null;
@@ -155,7 +156,7 @@ export async function streamChatResponse(
     },
   );
 
-  const searchTools = searchEnabled && parallelApiKey ? createSearchTools(parallelApiKey) : {};
+  const searchTools = searchEnabled && parallelApiKey ? createSearchTools(parallelApiKey, searchMode) : {};
   const handoffTools = threadId && handoffEnabled && utilityProvider ? createHandoffTool(userId, threadId, messages, utilityProvider) : {};
   const tools = (Object.keys({ ...searchTools, ...handoffTools }).length > 0) && supportsTools
     ? { ...searchTools, ...handoffTools }
@@ -226,7 +227,7 @@ export async function streamChatResponse(
     system: systemPrompt,
     messages: sanitizedConvertedMessages,
     tools,
-    stopWhen: stepCountIs(8),
+    stopWhen: stepCountIs(userSettings.maxToolSteps),
     providerOptions,
     prepareStep: stripReasoningFromModelMessages
       ? ({ messages: stepMessages }) => {

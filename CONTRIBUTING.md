@@ -15,7 +15,7 @@ Follow the [Getting Started](README.md#getting-started) guide in the README to s
 
 1. **Create a branch** for your feature/fix: `git checkout -b feature/my-feature`
 2. **Make changes** following the code style below
-3. **Test locally** with `bun run dev`
+3. **Test locally** with `bun run dev` (standard Next.js dev server) or `bun run preview` (Cloudflare Workers preview via Wrangler)
 4. **Commit** with clear messages
 5. **Push** and open a PR
 
@@ -38,7 +38,8 @@ Style is enforced via ESLint — this runs automatically in VSCode.
 ```bash
 bun run lint          # Run ESLint
 bun run lint:fix      # Auto-fix style issues
-bun run build         # TypeScript check + build
+bun run build         # TypeScript check + Next.js build
+bun run preview       # Build with OpenNext and preview on Cloudflare Workers locally
 ```
 
 ## Database Changes
