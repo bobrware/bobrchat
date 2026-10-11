@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | BobrChat",
   },
   description:
-    "BobrChat is a fast, minimal AI chat interface with support for multiple models. Bring your own API key and pay only what you use. Chat with Claude, GPT, Gemini, and more.",
+    "BobrChat is a fast, minimal AI chat interface for existing users. Registration is closed. Existing users can still sign in to their accounts.",
   icons: {
     apple: "/apple-touch-icon.png",
   },
@@ -39,14 +39,14 @@ export const metadata: Metadata = {
     siteName: "BobrChat",
     title: "BobrChat - Fast, Minimal AI Chat Interface",
     description:
-      "Bring your own API key and pay only what you use. Chat with Claude, GPT, Gemini, and more in a clean, minimal interface.",
+      "Registration is closed. Existing BobrChat users can still sign in to their accounts.",
     images: [{ url: "https://og.bobrchat.com/", width: 1200, height: 630, alt: "BobrChat - Fast, Minimal AI Chat Interface" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "BobrChat - Fast, Minimal AI Chat Interface",
     description:
-      "Bring your own API key and pay only what you use. Chat with Claude, GPT, Gemini, and more in a clean, minimal interface.",
+      "Registration is closed. Existing BobrChat users can still sign in to their accounts.",
     images: [{ url: "https://og.bobrchat.com/", alt: "BobrChat - Fast, Minimal AI Chat Interface" }],
   },
 };

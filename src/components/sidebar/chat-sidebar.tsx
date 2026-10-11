@@ -27,7 +27,6 @@ import { Skeleton } from "../ui/skeleton";
 import { NewThreadButton } from "./new-thread-button";
 import { TagsFilterPopover } from "./tags-filter-popover";
 import { ThreadList } from "./thread-list";
-import { UpgradeBanner } from "./upgrade-banner";
 import { UserProfileCard } from "./user-profile-card";
 
 function ThreadListSkeleton() {
@@ -228,7 +227,6 @@ export function ChatSidebar({ session }: ChatSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-0">
-        <UpgradeBanner />
         <UserProfileCard session={session} />
       </SidebarFooter>
     </Sidebar>

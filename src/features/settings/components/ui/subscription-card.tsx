@@ -1,12 +1,11 @@
 "use client";
 
-import { ExternalLinkIcon, LoaderIcon, SparklesIcon } from "lucide-react";
+import { ExternalLinkIcon, LoaderIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { createCustomerPortalSession } from "~/features/subscriptions/actions";
-import { UpgradeDialog } from "~/features/subscriptions/components/upgrade-dialog";
 import { UsageMeter } from "~/features/subscriptions/components/usage-meter";
 import { useSubscriptionWithCheckout } from "~/features/subscriptions/hooks/use-subscription";
 import { cn } from "~/lib/utils";
@@ -30,7 +29,6 @@ function formatBytes(bytes: number): string {
 export function SubscriptionCard() {
   const { data: subscription, isLoading, awaitingUpgrade } = useSubscriptionWithCheckout();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const handleManageSubscription = async () => {
     setIsRedirecting(true);
@@ -95,16 +93,6 @@ export function SubscriptionCard() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {subscription.canUpgrade && (
-            <Button
-              size="sm"
-              className="flex-1"
-              onClick={() => setShowUpgrade(true)}
-            >
-              <SparklesIcon className="size-3" />
-              Upgrade
-            </Button>
-          )}
           {subscription.polarCustomerId && (
             <Button
               variant="outline"
@@ -130,7 +118,6 @@ export function SubscriptionCard() {
           )}
         </div>
       </div>
-      <UpgradeDialog open={showUpgrade} onOpenChangeAction={setShowUpgrade} />
     </>
   );
 }

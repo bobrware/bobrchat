@@ -8,6 +8,9 @@ import { getPolarClient } from "~/lib/polar";
 
 import { checkThreadLimit, getStorageQuota, getUserSubscription, POLAR_PRODUCT_IDS } from "./index";
 
+// Keep billing management and subscription syncing intact while closing sales.
+const CHECKOUT_ENABLED = false;
+
 export type SubscriptionStatus = {
   tier: SubscriptionTier;
   limits: {
@@ -42,7 +45,7 @@ export async function getSubscriptionStatus(): Promise<SubscriptionStatus> {
       storage: { current: storageInfo.usedBytes, limit: storageInfo.quota },
     },
     polarCustomerId: subscription.polarCustomerId ?? null,
-    canUpgrade: subscription.tier === "free" || subscription.tier === "beta",
+    canUpgrade: CHECKOUT_ENABLED && (subscription.tier === "free" || subscription.tier === "beta"),
   };
 }
 
@@ -51,6 +54,10 @@ export async function getPolarProductId(tier: "plus"): Promise<string | undefine
 }
 
 export async function createCheckoutSession(productId: string): Promise<{ url: string } | { error: string }> {
+  if (!CHECKOUT_ENABLED) {
+    return { error: "New subscriptions and upgrades are no longer available." };
+  }
+
   const polarClient = getPolarClient();
   if (!polarClient) {
     return { error: "Payments are not configured." };

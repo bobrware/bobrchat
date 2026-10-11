@@ -19,7 +19,6 @@ import { isInsufficientCreditsError, parseAIError } from "~/features/chat/lib/pa
 import { useChatUIStore } from "~/features/chat/store";
 import { getModelCapabilities, useFavoriteModels } from "~/features/models";
 import { OPENROUTER_CREDITS_KEY, USER_SETTINGS_KEY } from "~/features/settings/hooks/use-user-settings";
-import { UpgradePromptDialog } from "~/features/subscriptions/components/upgrade-prompt-dialog";
 
 type ChatThreadProps = {
   params: Promise<{ id: string }>;
@@ -47,11 +46,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
   } = useChatUIStore();
 
   const [creditError, setCreditError] = useState<{ messageId: string } | null>(null);
-  const [upgradeDialog, setUpgradeDialog] = useState<{ open: boolean; currentUsage: number; limit: number }>({
-    open: false,
-    currentUsage: 0,
-    limit: 0,
-  });
 
   // Rehydrate model selector from thread's last-used model
   const hasRehydratedModelRef = useRef(false);
@@ -145,11 +139,7 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
       try {
         const errorData = JSON.parse(error.message);
         if (errorData.code === "THREAD_LIMIT_EXCEEDED") {
-          setUpgradeDialog({
-            open: true,
-            currentUsage: errorData.currentUsage,
-            limit: errorData.limit,
-          });
+          toast.error("Thread limit reached. Delete some threads to continue.");
           return;
         }
       }
@@ -419,12 +409,6 @@ function ChatThread({ params, initialMessages, initialPendingMessage, parentThre
           />
         )}
       </ChatView>
-      <UpgradePromptDialog
-        open={upgradeDialog.open}
-        onOpenChangeAction={open => setUpgradeDialog(prev => ({ ...prev, open }))}
-        currentUsage={upgradeDialog.currentUsage}
-        limit={upgradeDialog.limit}
-      />
     </>
   );
 }

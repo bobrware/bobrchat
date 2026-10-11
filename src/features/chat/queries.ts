@@ -381,7 +381,7 @@ export async function createThreadWithLimitCheck(
     if (threadLimit !== null && currentCount >= threadLimit) {
       return {
         ok: false as const,
-        reason: `You've reached your limit of ${threadLimit} threads. Delete some threads or upgrade to continue.`,
+        reason: `You've reached your limit of ${threadLimit} threads. Delete some threads to continue.`,
         currentUsage: currentCount,
         limit: threadLimit,
       };
@@ -497,7 +497,7 @@ export async function ensureThreadExistsWithLimitCheck(
     if (threadLimit !== null && currentCount >= threadLimit) {
       return {
         ok: false as const,
-        reason: `You've reached your limit of ${threadLimit} threads. Delete some threads or upgrade to continue.`,
+        reason: `You've reached your limit of ${threadLimit} threads. Delete some threads to continue.`,
         currentUsage: currentCount,
         limit: threadLimit,
       };

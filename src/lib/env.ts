@@ -8,6 +8,8 @@ const schema = {
     WORKOS_API_KEY: z.string(),
     WORKOS_CLIENT_ID: z.string(),
     WORKOS_COOKIE_PASSWORD: z.string().min(32),
+    WORKOS_COOKIE_NAME: z.string().optional(),
+    WORKOS_COOKIE_DOMAIN: z.string().optional(),
     ENCRYPTION_SECRET: z.string().min(32),
     ENCRYPTION_SALT: z.string().min(8),
     R2_PUBLIC_URL: z.url().optional(),

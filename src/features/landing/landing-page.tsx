@@ -21,25 +21,9 @@ const jsonLd = {
   "@type": "WebApplication",
   "name": "BobrChat",
   "url": "https://bobrchat.com",
-  "description": "Fast, minimal AI chat interface. Bring your own API keys and pay only what you use. Chat with Claude, GPT, Gemini, and more with OpenRouter, OpenAI, Anthropic, and more.",
+  "description": "Fast, minimal AI chat interface for existing BobrChat users. Registration is closed.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Web",
-  "offers": [
-    {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD",
-      "name": "Free",
-      "description": "100 threads, 10 MB storage",
-    },
-    {
-      "@type": "Offer",
-      "price": "2.99",
-      "priceCurrency": "USD",
-      "name": "Plus",
-      "description": "Unlimited threads, 100 MB storage, free titling, priority support",
-    },
-  ],
 };
 
 const faqJsonLd = {
@@ -141,10 +125,13 @@ export function LandingPage() {
               Bring your own API keys from OpenRouter, OpenAI, Anthropic, and more. No model limits. No daily usage. Just a clean
               interface for the models you want to use.
             </p>
+            <p className="text-muted-foreground text-sm">
+              Registration is closed. Existing users can still sign in.
+            </p>
             <div className="flex justify-center gap-3 pt-2">
-              <Link href="/signup">
+              <Link href="/login">
                 <Button size="lg" className="gap-2">
-                  Sign Up
+                  Sign in
                   <ArrowRightIcon className="size-4" />
                 </Button>
               </Link>
@@ -306,89 +293,6 @@ export function LandingPage() {
             </Accordion>
           </div>
 
-          {/* Pricing */}
-          <div className="mt-20 flex flex-col items-center text-center">
-            <h2 className="text-xl font-semibold">Pricing</h2>
-
-            <div className={`
-              border-border/60 mt-8 grid w-full max-w-2xl grid-cols-1 border
-              border-dashed
-              md:grid-cols-2
-            `}
-            >
-              <div className={`
-                border-border/60 flex flex-col border-b border-dashed p-6
-                text-left
-                md:border-r md:border-b-0
-              `}
-              >
-                <h3 className="font-semibold">Free</h3>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Everything you need to get started.
-                </p>
-                <div className="mt-4 mb-4">
-                  <span className="text-3xl font-bold">$0</span>
-                </div>
-                <ul className="text-muted-foreground space-y-2 text-sm">
-                  <li>100 threads</li>
-                  <li>10 MB storage</li>
-                </ul>
-                <Link href="/signup" className="mt-auto">
-                  <Button variant="outline" className="w-full gap-2">
-                    Sign Up
-                    <ArrowRightIcon className="size-4" />
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="bg-primary/5 relative flex flex-col p-6 text-left">
-                <div className={`
-                  bg-primary text-background absolute -top-3 left-6 rounded-full
-                  px-3 py-0.5 text-xs font-medium
-                `}
-                >
-                  Recommended
-                </div>
-                <h3 className="font-semibold">Plus</h3>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  For power users who need more.
-                </p>
-                <div className="mt-4 mb-4">
-                  <span className="text-3xl font-bold">$2.99</span>
-                  <span className="text-muted-foreground text-sm">/mo</span>
-                </div>
-                <ul className="text-muted-foreground space-y-2 text-sm">
-                  <li>
-                    <b>Unlimited</b>
-                    {" "}
-                    threads
-                  </li>
-                  <li>
-                    <b>100 MB</b>
-                    {" "}
-                    storage
-                  </li>
-                  <li>
-                    <b>Free</b>
-                    {" "}
-                    titling
-                  </li>
-                  <li>Incognito chats</li>
-                  <li>Priority support</li>
-                </ul>
-                <Link href="/signup" className="mt-auto pt-6">
-                  <Button className="w-full gap-2">
-                    Sign Up
-                    <ArrowRightIcon className="size-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <p className="text-muted-foreground mt-4 max-w-lg text-sm">
-              Both plans include encrypted messages and multi-provider API key support (OpenRouter, OpenAI, Anthropic, and more).
-              You always pay for your own API usage through your chosen provider.
-            </p>
-          </div>
         </div>
       </main>
 
