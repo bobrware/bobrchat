@@ -1,10 +1,13 @@
 import { handleAuth } from "@workos-inc/authkit-nextjs";
 import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
-import { createDefaultUserSettings } from "~/features/settings/actions";
-import { createUserSubscription } from "~/features/subscriptions/queries";
 import { db } from "~/lib/db";
 import { users } from "~/lib/db/schema";
+import { serverEnv } from "~/lib/env";
+
+class RegistrationClosedError extends Error {}
 
 export const GET = handleAuth({
   returnPathname: "/",
@@ -46,22 +49,29 @@ export const GET = handleAuth({
       return;
     }
 
-    // Brand new user
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email,
-        email: user.email,
-        image: user.profilePictureUrl ?? null,
-        workosId: user.id,
-      })
-      .returning();
+    throw new RegistrationClosedError("Registration is closed.");
+  },
+  onError: async ({ error, request }) => {
+    // AuthKit saves its cookie before onSuccess. Expire it on rejection or
+    // callback failure so an unlinked identity cannot retain an app session.
+    const cookieStore = await cookies();
+    cookieStore.set(serverEnv.WORKOS_COOKIE_NAME || "wos-session", "", {
+      path: "/",
+      domain: serverEnv.WORKOS_COOKIE_DOMAIN || "",
+      httpOnly: true,
+      secure: request.nextUrl.protocol === "https:",
+      maxAge: 0,
+    });
 
-    if (newUser) {
-      await Promise.all([
-        createDefaultUserSettings(newUser.id),
-        createUserSubscription(newUser.id),
-      ]);
+    if (error instanceof RegistrationClosedError) {
+      return NextResponse.redirect(new URL("/registration-closed", request.url));
     }
+
+    return NextResponse.json({
+      error: {
+        message: "Couldn't sign in",
+        description: "Please try signing in again. If the problem persists, contact support.",
+      },
+    }, { status: 500 });
   },
 });

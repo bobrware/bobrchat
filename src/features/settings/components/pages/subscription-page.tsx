@@ -13,7 +13,7 @@ import { SubscriptionCard } from "../ui/subscription-card";
 const PLAN_INFO: Record<string, { label: string; description: string; features: string[] }> = {
   free: {
     label: "Free",
-    description: "Get started with the basics.",
+    description: "Your current plan includes the basics.",
     features: [
       "100 threads",
       "10 MB storage",

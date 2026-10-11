@@ -31,7 +31,7 @@ export async function checkThreadLimit(userId: string): Promise<LimitCheckResult
   if (currentCount >= threadLimit) {
     return {
       allowed: false,
-      reason: `You've reached your limit of ${threadLimit} threads. Delete some threads or upgrade to continue.`,
+      reason: `You've reached your limit of ${threadLimit} threads. Delete some threads to continue.`,
       currentUsage: currentCount,
       limit: threadLimit,
     };
