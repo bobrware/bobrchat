@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd -- "$repo_root"
+
+# No installs or authentication: verify the snapshot from a fresh login shell.
+bash -lc '
+  set -euo pipefail
+  test "${IN_NIX_SHELL:-}" = impure
+  command -v bun >/dev/null
+  command -v node >/dev/null
+  test -d node_modules/next
+  test -d og/node_modules/wrangler
+'
+echo "Orb toolchain and dependencies ready"

@@ -1,4 +1,5 @@
 {
+  lib,
   mkShell,
   alejandra,
   bash,
@@ -6,21 +7,22 @@
   bun,
   docker-compose,
   wrangler,
+  includeWrangler ? true,
 }:
 mkShell rec {
   name = "sdk-test";
 
-  packages = [
-    bash
-    nodejs
-    bun
+  packages =
+    [
+      bash
+      nodejs
+      bun
 
-    docker-compose
+      docker-compose
 
-    # Cloudflare Workers CLI (properly linked for NixOS)
-    wrangler
-
-    # Required for CI for format checking.
-    alejandra
-  ];
+      # Required for CI for format checking.
+      alejandra
+    ]
+    # Orbs use the locked npm CLI instead of rebuilding Wrangler in Nix.
+    ++ lib.optional includeWrangler wrangler;
 }

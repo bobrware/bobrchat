@@ -50,3 +50,6 @@ next-env.d.ts
 /uploads
 public/icon.ico
 .env*.local
+
+# orb portal metadata
+/.amp/portals/

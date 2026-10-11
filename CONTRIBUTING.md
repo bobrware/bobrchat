@@ -6,6 +6,31 @@ Thanks for your interest! We welcome issues, pull requests, and discussions.
 
 Follow the [Getting Started](README.md#getting-started) guide in the README to set up your local environment.
 
+### Amp orbs
+
+`.agents/setup` installs Nix, prepares the `orb` development shell pinned by `flake.lock`,
+and installs both the app and `og/` dependencies with frozen Bun lockfiles. Amp can
+cache the prepared environment in project snapshots, so new orbs reuse the toolchain
+and dependencies. Repeated setup runs reuse installed packages and caches.
+
+The orb shell uses repository-local Wrangler instead of building a redundant Nix
+copy, which can exhaust small orbs' memory. The default Nix shell is unchanged.
+
+The setup adds a repository-scoped login-shell hook so agents and supervised services
+receive the full Nix environment without manually running `nix develop`.
+`.agents/resume` checks that this environment and both dependency installations are
+available; it does not reinstall packages or authenticate services.
+
+When neither `.env` nor `.env.local` exists, setup copies `.env.example` to
+`.env.local`. The template is not a working app configuration: supply the required
+values through Amp project secrets or the ignored environment file. Setup does not
+provision databases, run migrations, start servers, or deploy anything. Database
+commands remain manual, as required by `AGENTS.md`.
+
+For an orb dev server, use `amp orb service start web --command 'bun run dev' --portal`
+after configuring the environment and database. Use the returned portal URL to access
+it, rather than a sandbox-local address.
+
 ## AI Usage
 
 > [!NOTE]

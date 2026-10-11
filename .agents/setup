@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd -- "$repo_root"
+
+echo "Preparing the Nix toolchain"
+SECONDS=0
+if [[ ! -x "$HOME/.nix-profile/bin/nix" ]] && ! command -v nix >/dev/null; then
+  missing_packages=()
+  for package in ca-certificates curl xz-utils; do
+    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -qx 'install ok installed'; then
+      missing_packages+=("$package")
+    fi
+  done
+  if (( ${#missing_packages[@]} )); then
+    sudo apt-get update
+    sudo apt-get install -y "${missing_packages[@]}"
+  fi
+  installer="$(mktemp)"
+  trap 'rm -f -- "$installer"' EXIT
+  curl --fail --show-error --silent --location https://nixos.org/nix/install -o "$installer"
+  bash "$installer" --no-daemon --yes
+  rm -f -- "$installer"
+  trap - EXIT
+fi
+
+if [[ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]]; then
+  # The installer cannot update this running script's environment.
+  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+nix_bin="$(command -v nix)"
+nix_flags=(--extra-experimental-features 'nix-command flakes')
+nix "${nix_flags[@]}" print-dev-env --no-write-lock-file "$repo_root#orb" >/dev/null
+echo "Nix toolchain ready in ${SECONDS}s"
+
+# Refresh the hook on stale snapshots without duplicating profile entries.
+mkdir -p "$HOME/.config/amp"
+cat > "$HOME/.config/amp/bobrchat-orb-env.sh" <<EOF
+# Login shells can reset PATH while retaining IN_NIX_SHELL, so use a separate
+# recursion guard and export the complete environment once per login shell.
+if [[ -z "\${BOBRCHAT_NIX_ACTIVATING:-}" && ( "\$PWD" == "$repo_root" || "\$PWD" == "$repo_root/"* ) ]]; then
+  export BOBRCHAT_NIX_ACTIVATING=1
+  eval "\$("$nix_bin" --extra-experimental-features 'nix-command flakes' print-dev-env --no-write-lock-file "$repo_root#orb")"
+  unset BOBRCHAT_NIX_ACTIVATING
+  export PATH="$repo_root/node_modules/.bin:\$PATH"
+  if [[ "\$PWD" != "$repo_root" ]]; then
+    export PATH="\$PWD/node_modules/.bin:\$PATH"
+  fi
+fi
+EOF
+profile_marker="# bobrchat orb Nix development shell"
+if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
+  cat >> "$HOME/.bash_profile" <<EOF
+
+$profile_marker
+source "$HOME/.config/amp/bobrchat-orb-env.sh"
+EOF
+fi
+
+echo "Installing locked app and OG worker dependencies"
+SECONDS=0
+nix "${nix_flags[@]}" develop --no-write-lock-file "$repo_root#orb" --command bash -c '
+  set -euo pipefail
+  bun install --frozen-lockfile
+  cd og
+  bun install --frozen-lockfile
+'
+echo "Dependencies ready in ${SECONDS}s"
+
+if [[ ! -f .env.local && ! -f .env ]]; then
+  cp -- .env.example .env.local
+fi
+echo "Setup ready. Configure project secrets before running the app."
+echo "Database provisioning and migrations are manual; see AGENTS.md and README.md."
