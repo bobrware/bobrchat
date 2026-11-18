@@ -28,6 +28,29 @@ const resolveInternalUser = cache(async (workosId: string, workosName: string) =
  * Get the current session, or null if not authenticated.
  */
 export async function getSession(): Promise<Session | null> {
+  // Local dev bypass: when AUTH_BYPASS=1, skip WorkOS and act as the seeded
+  // dev user (users.workos_id = 'dev-bypass-user'). Never set in production.
+  // eslint-disable-next-line node/no-process-env -- dev-only flag; server env validation isn't middleware-safe
+  if (process.env.AUTH_BYPASS === "1") {
+    const [row] = await db
+      .select()
+      .from(users)
+      .where(eq(users.workosId, "dev-bypass-user"))
+      .limit(1);
+    if (!row)
+      return null;
+    return {
+      user: {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        image: row.image,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      },
+    };
+  }
+
   const { user: workosUser } = await withAuth();
 
   if (!workosUser) {
