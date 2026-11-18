@@ -2,8 +2,14 @@
 @import "tw-animate-css";
 
 @source "../";
-@source "../../node_modules/streamdown/dist/*.js";
-@source "../../node_modules/@streamdown/math/dist/*.js";
+/* Words highlights: tokens carry light and dark colors as custom properties. */
+[data-markdown="code"] span {
+  color: var(--hls-light, currentColor);
+}
+
+.dark [data-markdown="code"] span {
+  color: var(--hls-dark, currentColor);
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -204,18 +210,6 @@ html.accent-gray.dark {
 /* cmdk spacing */
 div[data-slot="command-group"] > div {
   @apply space-y-1;
-}
-
-mjx-container[jax="SVG"] > svg {
-  @apply inline;
-}
-
-mjx-container[jax="SVG"][display="true"] > svg {
-  @apply mx-auto;
-}
-
-.katex-display {
-  @apply text-center my-2;
 }
 
 @media (hover: none) {

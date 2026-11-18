@@ -53,3 +53,4 @@ public/icon.ico
 
 # orb portal metadata
 /.amp/portals/
+.wrangler/
