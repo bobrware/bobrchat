@@ -102,6 +102,7 @@ export function MessageParts({
               key={`part-${index}`}
               id={`${messageId}-${index}`}
               content={part.text}
+              streaming={isActive && isLoading && isLast}
             />
           );
         }

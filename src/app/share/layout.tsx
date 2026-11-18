@@ -1,5 +1,4 @@
-import "katex/dist/katex.min.css";
-import "streamdown/styles.css";
+import "@pierre/words/styles.css";
 
 export default function ShareLayout({
   children,
